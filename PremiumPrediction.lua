@@ -402,7 +402,7 @@ function PremiumPrediction:GetStandardPrediction(A, B, D, W, a1, O, ar, as, ay)
 			if ar and ar > 0 then
 				O = t(2 * aK * aK - 2 * aK * aK * l(ar))
 			end
-			av = Vector(_.x + aK * aD.x / ay, _.y + aK * aD.y, _.z + aK * aD.z / ay)
+			av = Vector(_.x + aK * aD.x / ay, _.y + aK * aD.y / ay, _.z + aK * aD.z / ay)
 			au = self:GenerateCastPos(A, av, _, a0, D * N, O)
 			aJ = {
 				x = aJ.x + au.x,
