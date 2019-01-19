@@ -179,16 +179,16 @@ function PremiumPrediction:ProcessWaypoint(a7)
 			end
 			for a2, ab in pairs(z[a8]) do
 				if ab.endPos then
-					if a2 > 5 then
+					if a2 > 4 then
 						v(z[a8], 1)
 					end
-					if GetTickCount() > ab.ticker + 175 then
+					if GetTickCount() > ab.ticker + 150 then
 						v(z[a8], a2)
 					end
 				end
 			end
 		else
-			for a2 = 1, 5 do
+			for a2 = 0, 5 do
 				v(z[a8], a2)
 			end
 		end
