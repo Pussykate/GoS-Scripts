@@ -94,6 +94,9 @@ local function DownloadFile(site, file)
 end
 
 local function AutoUpdate()
+	if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
+		DownloadFile("https://github.com/Ark223/GoS-Scripts/blob/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua")
+	end
 	DownloadFile(VerSite, SCRIPT_PATH .. "GoS-U Reborn.version")
 	if tonumber(ReadFile(SCRIPT_PATH, "GoS-U Reborn.version")) > tonumber(Version) then
 		print("Update found. Downloading...")
