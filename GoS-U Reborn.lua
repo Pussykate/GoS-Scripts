@@ -75,8 +75,6 @@ local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS
 local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.lua"
 
 function OnLoad()
-	require 'MapPositionGOS'
-	require 'PremiumPrediction'
 	Module.Awareness = GoSuAwareness()
 	if BaseUltC[myHero.charName] then Module.BaseUlt = GoSuBaseUlt() end
 	Module.Geometry = GoSuGeometry()
@@ -85,6 +83,8 @@ function OnLoad()
 	Module.Utility = GoSuUtility()
 	if Champions[myHero.charName] then _G[myHero.charName]() end
 	AutoUpdate()
+	require 'MapPositionGOS'
+	require 'PremiumPrediction'
 end
 
 local function DownloadFile(site, file)
