@@ -75,6 +75,8 @@ local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS
 local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.lua"
 
 function OnLoad()
+	require 'MapPositionGOS'
+	require 'PremiumPrediction'
 	Module.Awareness = GoSuAwareness()
 	if BaseUltC[myHero.charName] then Module.BaseUlt = GoSuBaseUlt() end
 	Module.Geometry = GoSuGeometry()
@@ -83,17 +85,15 @@ function OnLoad()
 	Module.Utility = GoSuUtility()
 	if Champions[myHero.charName] then _G[myHero.charName]() end
 	AutoUpdate()
-	require 'MapPositionGOS'
-	require 'PremiumPrediction'
 end
 
-local function DownloadFile(site, file)
+function DownloadFile(site, file)
 	local start = os.clock()
 	DownloadFileAsync(site, file, function() end)
 	repeat until os.clock() - start > 5 or FileExist(file)
 end
 
-local function AutoUpdate()
+function AutoUpdate()
 	if not FileExist(COMMON_PATH .. "PremiumPrediction.lua") then
 		DownloadFile("https://github.com/Ark223/GoS-Scripts/blob/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua")
 	end
@@ -112,23 +112,130 @@ local DamageTable = {
 	["Ashe"] = {
 		{slot = 1, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({20, 35, 50, 65, 80})[GoSuManager:GetCastLevel(myHero, _W)] + myHero.totalDamage)) end},
 		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({200, 400, 600})[GoSuManager:GetCastLevel(myHero, _R)] + myHero.ap)) end},
-		{slot = 3, state = 1, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({100, 200, 300})[GoSuManager:GetCastLevel(myHero, _R)] + 0.5 * myHero.ap)) end},
+	},
+	["Caitlyn"] = {
+		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({250, 475, 700})[GoSuManager:GetCastLevel(myHero, _R)] + 2 * myHero.bonusDamage)) end},
+	},
+	["Corki"] = {
+		{slot = 0, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({75, 120, 165, 210, 255})[GoSuManager:GetCastLevel(myHero, _Q)] + 0.5 * myHero.bonusDamage + 0.5 * myHero.ap)) end},
+		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({90, 115, 140})[GoSuManager:GetCastLevel(myHero, _R)] + ({0.15, 0.45, 0.75})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.totalDamage + 0.2 * myHero.ap)) end},
+		{slot = 3, state = 1, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({180, 230, 280})[GoSuManager:GetCastLevel(myHero, _R)] + ({0.3, 0.9, 1.5})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.totalDamage + 0.4 * myHero.ap)) end},
+	},
+	["Draven"] = {
+		{slot = 3, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({175, 275, 375})[GoSuManager:GetCastLevel(myHero, _R)] + 1.1 * myHero.bonusDamage)) end},
+		{slot = 3, state = 1, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({350, 550, 750})[GoSuManager:GetCastLevel(myHero, _R)] + 2.2 * myHero.bonusDamage)) end},
+	},
+	["Ezreal"] = {
+		{slot = 0, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({15, 40, 65, 90, 115})[GoSuManager:GetCastLevel(myHero, _Q)] + 1.1 * myHero.totalDamage + 0.3 * myHero.ap)) end},
+		{slot = 3, state = 0, function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({175, 250, 325})[GoSuManager:GetCastLevel(myHero, _R)] + myHero.bonusDamage + 0.9 * myHero.ap)) end},
+	},
+	["Jinx"] = {
+		{slot = 3, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({250, 350, 450})[GoSuManager:GetCastLevel(myHero, _R)] + 1.5 * myHero.bonusDamage + ({0.25, 0.3, 0.35})[GoSuManager:GetCastLevel(myHero, _R)] * target.maxHealth)) end},
+		{slot = 3, state = 1, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({25, 35, 45})[GoSuManager:GetCastLevel(myHero, _R)] + 0.15 * myHero.bonusDamage + ({0.25, 0.3, 0.35})[GoSuManager:GetCastLevel(myHero, _R)] * target.maxHealth)) end},
+	},
+	["Kalista"] = {
+		{slot = 2, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, GoSuManager:GotBuff(target, "kalistaexpungemarker") > 0 and ((({20, 30, 40, 50, 60})[GoSuManager:GetCastLevel(myHero, _E)] + 0.6 * myHero.bonusDamage) + ((GoSuManager:GotBuff(target, "kalistaexpungemarker") - 1) * (({10, 14, 19, 25, 32})[GoSuManager:GetCastLevel(myHero, _E)] + ({0.2, 0.2375, 0.275, 0.3125, 0.35})[GoSuManager:GetCastLevel(myHero, _E)] * myHero.totalDamage)))) end},
+	},
+	["KogMaw"] = {
+		{slot = 2, state = 0, function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({60, 105, 150, 195, 240})[GoSuManager:GetCastLevel(myHero, _E)] + 0.5 * myHero.ap)) end},
+		{slot = 3, state = 0, function(target) return GoSuManager:CalcMagicalDamage(myHero, target, ((({100, 140, 180})[GoSuManager:GetCastLevel(myHero, _R)] + 0.65 * myHero.bonusDamage + 0.25 * myHero.ap) * (GoSuManager:GetPercentHP(target) > 40 and 0.833 * (target.maxHealth / 100) or 1) * (GoSuManager:GetPercentHP(target) < 40 and 2 or 1))) end},
+	},
+	["Lucian"] = {
+		{slot = 3, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({400, 875, 1500})[GoSuManager:GetCastLevel(myHero, _R)] + ({5, 6.25, 7.5})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.totalDamage + ({2, 2.5, 3})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.ap)) end},
+	},
+	["MissFortune"] = {
+		{slot = 3, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({9, 10.5, 12})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.totalDamage + ({2.4, 2.8, 3.2})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.ap)) end},
+		{slot = 3, state = 1, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({10.8, 12.6, 14.4})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.totalDamage + ({2.88, 3.36, 3.84})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.ap)) end},
+	},
+	["Tristana"] = {
+		{slot = 3, state = 0, function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({300, 400, 500})[GoSuManager:GetCastLevel(myHero, _R)] + myHero.ap)) end},
+	},
+	["Twitch"] = {
+		{slot = 3, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, ((({20, 30, 40, 50, 60})[GoSuManager:GetCastLevel(myHero, _E)]) + ((GoSuManager:GotBuff(target, "twitchdeadlyvenom") * (({15, 20, 25, 30, 35})[GoSuManager:GetCastLevel(myHero, _E)]) + 0.35 * myHero.bonusDamage + 0.2 * myHero.ap)))) end},
+	},
+	["Vayne"] = {
+		{slot = 3, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({50, 85, 120, 155, 190})[GoSuManager:GetCastLevel(myHero, _E)] + 0.5 * myHero.bonusDamage)) end},
+		{slot = 3, state = 1, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({100, 170, 240, 310, 380})[GoSuManager:GetCastLevel(myHero, _E)] + myHero.bonusDamage)) end},
 	},
 }
+
 local SpellData = {
 	["Ashe"] = {
 		[1] = {speed = 2000, range = 1200, delay = 0.25, radius = 20, collision = true},
 		[3] = {speed = 1600, delay = 0.25, radius = 130, collision = false},
 	},
+	["Caitlyn"] = {
+		[0] = {speed = 2200, range = 1250, delay = 0.625, radius = 90, collision = false},
+		[1] = {speed = MathHuge, range = 800, delay = 0.25, radius = 75, collision = false},
+		[2] = {speed = 1600, range = 750, delay = 0.15, radius = 70, collision = true},
+	},
+	["Corki"] = {
+		[0] = {speed = 1000, range = 825, delay = 0.25, radius = 250, collision = false},
+		[2] = {range = 600},
+		[3] = {speed = 2000, range = 1300, delay = 0.175, radius = 40, collision = true},
+	},
 	["Draven"] = {
+		[2] = {speed = 1600, range = 1050, delay = 0.25, radius = 130, collision = false},
 		[3] = {speed = 2000, delay = 0.25, radius = 160, collision = false},
 	},
 	["Ezreal"] = {
+		[0] = {speed = 2000, range = 1150, delay = 0.25, radius = 60, collision = true},
+		[1] = {speed = 2000, range = 1150, delay = 0.25, radius = 60, collision = false},
+		[2] = {range = 475, radius = 750},
 		[3] = {speed = 2000, delay = 1, radius = 160, collision = false},
 	},
+	["Jhin"] = {
+		[0] = {range = 550},
+		[1] = {speed = 5000, range = 2550, delay = 0.75, radius = 40, collision = false},
+		[2] = {speed = 1600, range = 750, delay = 0.25, radius = 130, collision = false},
+		[3] = {speed = 5000, range = 3500, delay = 0.25, radius = 80, collision = false},
+	},
 	["Jinx"] = {
+		[1] = {speed = 3300, range = 1450, delay = 0.5, radius = 60, collision = true},
+		[2] = {speed = 1750, range = 900, delay = 0, radius = 120, collision = true},
 		[3] = {speed = 1700, delay = 0.6, radius = 140, collision = false},
 	},
+	["KaiSa"] = {
+		[0] = {range = 600},
+	--	[1] = {speed = ???, range = 3000, delay = 0.25, radius = ???, collision = true},
+	},
+	["Kalista"] = {
+		[0] = {speed = 2400, range = 1150, delay = 0.25, radius = 40, collision = true},
+		[1] = {range = 1000},
+		[3] = {range = 1200},
+	},
+	["KogMaw"] = {
+		[0] = {speed = 1650, range = 1175, delay = 0.25, radius = 70, collision = true},
+		[2] = {speed = 1400, range = 1360, delay = 0.25, radius = 120, collision = false},
+		[3] = {speed = MathHuge, range = 1300, delay = 1.1, radius = 200, collision = false},
+	},
+	["Lucian"] = {
+		[0] = {speed = MathHuge, range = 500, range2 = 900, delay = 0.35, radius = 65, collision = false},
+		[1] = {speed = 1600, range = 900, delay = 0.25, radius = 80, collision = true},
+		[3] = {speed = 2800, range = 1200, delay = 0, radius = 110, collision = true},
+	},
+	["MissFortune"] = {
+		[2] = {speed = MathHuge, range = 1000, delay = 0.25, radius = 350, collision = false},
+		[3] = {speed = 2000, range = 1400, delay = 0.25, radius = 100, angle = 34, collision = false},
+	},
+	["Sivir"] = {
+		[0] = {speed = 1350, range = 1250, delay = 0.25, radius = 90, collision = false},
+	},
+	["Tristana"] = {
+		[1] = {speed = 1100, range = 900, delay = 0.25, radius = 300, collision = false},
+		[2] = {range = 550},
+		[3] = {range = 550},
+	},
+	["Twitch"] = {
+		[1] = {speed = 1400, range = 950, delay = 0.25, radius = 300, collision = false},
+	},
+	["Varus"] = {
+		[0] = {speed = 1900 , range = 1525, delay = 0, radius = 70, collision = false},
+		[2] = {speed = 1500, range = 925, delay = 0.242, radius = 260, collision = false},
+		[3] = {speed = 1950, range = 1200, delay = 0.25, radius = 120, collision = false},
+	},
+	--["Xayah"] = {
+	--},
 }
 
 --[[
@@ -478,8 +585,8 @@ function GoSuAwareness:Draw()
 		if self.AwarenessMenu.DrawJng:Value() then
 			if enemy:GetSpellData(SUMMONER_1).name:lower():find("smite") and SUMMONER_1 or (enemy:GetSpellData(SUMMONER_2).name:lower():find("smite") and SUMMONER_2) then
 				if enemy.alive then
-					if ValidTarget(enemy) then
-						if GoSuManager:GetDistance(myHero.pos, enemy.pos) > 3000 then DrawText("Jungler: Visible", 17, myHero.pos2D.x-45, myHero.pos2D.y+10, DrawColor(0xFF32CD32))
+					if GoSuManager:ValidTarget(enemy) then
+						if GoSuGeometry:GetDistance(myHero.pos, enemy.pos) > 3000 then DrawText("Jungler: Visible", 17, myHero.pos2D.x-45, myHero.pos2D.y+10, DrawColor(0xFF32CD32))
 						else DrawText("Jungler: Near", 17, myHero.pos2D.x-43, myHero.pos2D.y+10, DrawColor(0xFFFF0000)) end
 					else
 						DrawText("Jungler: Invisible", 17, myHero.pos2D.x-55, myHero.pos2D.y+10, DrawColor(0xFFFFD700))
