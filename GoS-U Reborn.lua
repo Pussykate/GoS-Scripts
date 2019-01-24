@@ -842,7 +842,7 @@ class "GoSuTargetSelector"
 
 function GoSuTargetSelector:__init()
 	self.Timer = 0
-	self.SelectedTarget = false
+	self.SelectedTarget = nil
 	self.DamageType = {["Ashe"] = "AD", ["Caitlyn"] = "AD", ["Corki"] = "HB", ["Draven"] = "AD", ["Ezreal"] = "AD", ["Jhin"] = "AD", ["Jinx"] = "AD", ["KaiSa"] = "HB", ["Kalista"] = "AD", ["KogMaw"] = "HB", ["Lucian"] = "AD", ["MissFortune"] = "AD", ["Quinn"] = "AD", ["Sivir"] = "AD", ["Tristana"] = "AD", ["Twitch"] = "AD", ["Varus"] = "AD", ["Vayne"] = "AD", ["Xayah"] = "AD"}
 	self.Damage = function(target, dmgType, value) return (dmgType == "AD" and GoSuManager:CalcPhysicalDamage(myHero, target, value)) or (GoSuManager:CalcPhysicalDamage(myHero, target, value / 2) + GoSuManager:CalcMagicalDamage(myHero, target, value / 2)) end
 	self.Modes = {
@@ -889,12 +889,12 @@ end
 function GoSuTargetSelector:Draw()
 	if GameTimer() > self.Timer + 0.2 then
 		if self.TSMenu.ST:Value() then
-			if self.SelectedTarget == false then
+			if self.SelectedTarget == nil then
 				for i, enemy in pairs(GoSuManager:GetEnemyHeroes()) do
 					if GoSuManager:ValidTarget(enemy) and GoSuGeometry:IsInRange(mousePos, enemy.pos, 50) then self.SelectedTarget = enemy; break end
 				end
 			else
-				self.SelectedTarget = false
+				self.SelectedTarget = nil
 			end
 		end
 		self.Timer = GameTimer()
@@ -917,7 +917,9 @@ function GoSuTargetSelector:GetPriority(enemy)
 end
 
 function GoSuTargetSelector:GetTarget(range, mode)
-	if self.SelectedTarget ~= false then return self.SelectedTarget end
+	if self.SelectedTarget and GoSuGeometry:GetDistance(myHero.pos, self.SelectedTarget.pos) <= range then
+		return self.SelectedTarget
+	end
 	local targets = {}
 	for i, enemy in pairs(GoSuManager:GetEnemyHeroes()) do
 		if GoSuManager:ValidTarget(enemy, range) then TableInsert(targets, enemy) end
