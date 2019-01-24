@@ -56,7 +56,7 @@ local u = table.insert
 local v = table.remove
 local w = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.version"
 local x = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua"
-local y = "1.07"
+local y = "1.08"
 
 function AutoUpdate()
 	DownloadFileAsync(w, COMMON_PATH .. "PremiumPrediction.version", function()
@@ -84,13 +84,6 @@ class("PremiumPrediction")
 
 local z = {}
 function PremiumPrediction:__init()
-	Callback.Add("Tick", function()
-		self:Tick()
-	end)
-end
-
-function PremiumPrediction:Tick()
-	self:ProcessWaypoint(self:GetEnemyHeroes())
 end
 
 --[[
@@ -151,62 +144,18 @@ function PremiumPrediction:MinionCollision(_, a0, D, W, a1, O)
 	return false
 end
 
-function PremiumPrediction:ProcessWaypoint(a7)
-	for a2 = 1, #a7 do
-		local B = a7[a2]
-		local a8 = B.networkID
-		if not z[a8] then
-			z[a8] = {}
-		end
-		if B.pathing.hasMovePath then
-			local a9 = #z[a8]
-			if a9 > 0 then
-				local a0 = Vector(B.pathing.endPos)
-				local aa = z[a8][a9].endPos
-				if not self:IsInRange(aa, a0, 10) then
-					u(z[a8], {
-						startPos = Vector(B.pathing.startPos),
-						endPos = Vector(B.pathing.endPos),
-						ticker = GetTickCount()
-					})
-				end
-			else
-				u(z[a8], {
-					startPos = Vector(B.pathing.startPos),
-					endPos = Vector(B.pathing.endPos),
-					ticker = GetTickCount()
-				})
-			end
-			for a2, ab in pairs(z[a8]) do
-				if ab.endPos then
-					if a2 > 4 then
-						v(z[a8], 1)
-					end
-					if GetTickCount() > ab.ticker + 150 then
-						v(z[a8], a2)
-					end
-				end
-			end
-		else
-			for a2 = 0, 5 do
-				v(z[a8], a2)
-			end
-		end
-	end
-end
-
-function PremiumPrediction:VectorPointProjectionOnLineSegment(ac, ad, ae)
-	local af, ag, ah, ai, aj, ak = ad.z or ae.x, ae.z or ae.y, ac.x, ac.z or ac.y, ad.x, ad.y
-	local al = ((af - ah) * (aj - ah) + (ag - ai) * (ak - ai)) / ((aj - ah) ^ 2 + (ak - ai) ^ 2)
+function PremiumPrediction:VectorPointProjectionOnLineSegment(a7, a8, a9)
+	local aa, ab, ac, ad, ae, af = a8.z or a9.x, a9.z or a9.y, a7.x, a7.z or a7.y, a8.x, a8.y
+	local ag = ((aa - ac) * (ae - ac) + (ab - ad) * (af - ad)) / ((ae - ac) ^ 2 + (af - ad) ^ 2)
 	local a5 = {
-		x = ah + al * (aj - ah),
-		y = ai + al * (ak - ai)
+		x = ac + ag * (ae - ac),
+		y = ad + ag * (af - ad)
 	}
-	local am = al < 0 and 0 or al > 1 and 1 or al
-	local a6 = am == al
+	local ah = ag < 0 and 0 or ag > 1 and 1 or ag
+	local a6 = ah == ag
 	local a4 = a6 and a5 or {
-		x = ah + am * (aj - ah),
-		y = ai + am * (ak - ai)
+		x = ac + ah * (ae - ac),
+		y = ad + ah * (af - ad)
 	}
 	return a4, a5, a6
 end
@@ -218,25 +167,25 @@ end
 --]]
 
 function PremiumPrediction:GetAllyMinions(W)
-	local an = {}
+	local ai = {}
 	for a2 = 1, e() do
 		local a3 = f(a2)
 		if a3 and a3.team == myHero.team and self:ValidTarget(a3, W) then
-			an[#an + 1] = a3
+			u(ai, a3)
 		end
 	end
-	return an
+	return ai
 end
 
 function PremiumPrediction:GetEnemyHeroes()
-	EnemyHeroes = {}
+	local aj = {}
 	for a2 = 1, c() do
-		local ao = d(a2)
-		if ao.isEnemy then
-			u(EnemyHeroes, ao)
+		local ak = d(a2)
+		if ak.isEnemy then
+			u(aj, Hero)
 		end
 	end
-	return EnemyHeroes
+	return aj
 end
 
 function PremiumPrediction:IsAttacking(B)
@@ -251,9 +200,9 @@ end
 
 function PremiumPrediction:IsImmobile(B)
 	for a2 = 0, B.buffCount do
-		local ap = B:GetBuff(a2)
-		if ap and (ap.type == 5 or ap.type == 11 or ap.type == 18 or ap.type == 22 or ap.type == 24 or ap.type == 28 or ap.type == 29) and 0 < ap.duration then
-			return b() < ap.expireTime, ap.expireTime - b()
+		local al = B:GetBuff(a2)
+		if al and (al.type == 5 or al.type == 11 or al.type == 18 or al.type == 22 or al.type == 24 or al.type == 28 or al.type == 29) and 0 < al.duration then
+			return b() < al.expireTime, al.expireTime - b()
 		end
 	end
 	return false
@@ -265,19 +214,19 @@ end
 
 function PremiumPrediction:IsSlowed(B)
 	for a2 = 0, B.buffCount do
-		local ap = B:GetBuff(a2)
-		if ap and ap.type == 10 and 0 < ap.duration then
-			return b() < ap.expireTime
+		local al = B:GetBuff(a2)
+		if al and al.type == 10 and 0 < al.duration then
+			return b() < al.expireTime
 		end
 	end
 	return false
 end
 
-function PremiumPrediction:ValidTarget(aq, W)
+function PremiumPrediction:ValidTarget(am, W)
 	if not W or not W then
 		W = o
 	end
-	return aq ~= nil and aq.valid and aq.visible and not aq.dead and W >= aq.distance
+	return am ~= nil and am.valid and am.visible and not am.dead and W >= am.distance
 end
 
 --[[
@@ -286,289 +235,270 @@ end
 	└─┘┴ ┴┴─┘┴─┘└─┘┴ ┴└─┘┴ ┴
 --]]
 
-function PremiumPrediction:GetPrediction(A, B, D, W, a1, O, ar, as)
-	local at = Vector(B.pos)
-	if at then
+function PremiumPrediction:GetPrediction(A, B, D, W, a1, O, an, ao)
+	local ap = Vector(B.pos)
+	if ap then
 		local D = D or o
 		local W = W or 12500
-		local a8 = B.networkID
+		local aq = B.networkID
 		if self:IsMoving(B) then
 			if self:IsDashing(B) then
-				local au, av, aw, N = self:GetDashPrediction(A, B, D, W, a1, O, as)
-				return au, av, aw, N
+				local ar, as, at, N = self:GetDashPrediction(A, B, D, W, a1, O, ao)
+				return ar, as, at, N
 			else
-				local au, av, aw, N = self:GetStandardPrediction(A, B, D, W, a1, O, ar, as)
-				return au, av, aw, N
+				local ar, as, at, N = self:GetStandardPrediction(A, B, D, W, a1, O, an, ao)
+				return ar, as, at, N
 			end
 		else
-			local au, av, aw, N = self:GetImmobilePrediction(A, B, D, W, a1, O, as)
-			return au, av, aw, N
+			local ar, as, at, N = self:GetImmobilePrediction(A, B, D, W, a1, O, ao)
+			return ar, as, at, N
 		end
 	end
 end
 
-function PremiumPrediction:GetDashPrediction(A, B, D, W, a1, O, as)
+function PremiumPrediction:GetDashPrediction(A, B, D, W, a1, O, ao)
 	if self:IsDashing(B) then
-		local ax = Vector(A)
-		local A = self:IsZero(ax) and Vector(A.pos) or ax
-		local at = Vector(B.pos)
+		local au = Vector(A)
+		local A = self:IsZero(au) and Vector(A.pos) or au
+		local ap = Vector(B.pos)
 		local a1 = a1 + a() / 1000
-		local ay = B.pathing.dashSpeed
-		local au, av = at, at
-		local aw = 1
+		local av = B.pathing.dashSpeed
+		local ar, as = ap, ap
+		local at = 1
 		local _, a0 = Vector(B.pathing.startPos), Vector(B.pathing.endPos)
-		local az, aA, aB = a0.x - _.x, a0.y - _.y, a0.z - _.z
-		local aC = t(az * az + aB * aB)
-		local aD = Vector(az / aC * ay, aA / aC, aB / aC * ay)
-		local I, J = self:CalculateInterceptionTime(A, _, aD, D)
+		local aw, ax, ay = a0.x - _.x, a0.y - _.y, a0.z - _.z
+		local az = t(aw * aw + ay * ay)
+		local aA = Vector(aw / az * av, ax / az, ay / az * av)
+		local I, J = self:CalculateInterceptionTime(A, _, aA, D)
 		local N = a1 + p(I, J)
-		local aE = a1 + self:GetDistance(at, a0) / D
-		if N <= aE then
-			au = _:Extended(a0, ay * N)
+		local aB = a1 + self:GetDistance(ap, a0) / D
+		if N <= aB then
+			ar = _:Extended(a0, av * N)
 		else
-			au = a0
+			ar = a0
 		end
-		av = au
-		if as and self:MinionCollision(A, au, D, W, a1, O) or MapPosition:inWall(au) then
-			aw = -1
-		elseif self:GetDistanceSqr(au, A) > W * W then
-			aw = 0
+		as = ar
+		if ao and self:MinionCollision(A, ar, D, W, a1, O) or MapPosition:inWall(ar) then
+			at = -1
+		elseif self:GetDistanceSqr(ar, A) > W * W then
+			at = 0
 		end
-		return au, av, aw, N
+		return ar, as, at, N
 	end
 end
 
-function PremiumPrediction:GetImmobilePrediction(A, B, D, W, a1, O, as, ay)
-	local ax = Vector(A)
-	local A = self:IsZero(ax) and Vector(A.pos) or ax
-	local at = Vector(B.pos)
-	local ay = B.ms
-	local au, av = at, at
-	local aw = 0
-	local N = self:GetDistance(A, au) / D + a1 + a() / 1000
-	local aF, aG = self:IsAttacking(B)
-	local aH, aI = self:IsImmobile(B)
-	if aF then
-		aw = q(1, O * 2 / ay / (N - aG))
-	elseif aH then
-		if N < aI then
-			aw = 1
+function PremiumPrediction:GetImmobilePrediction(A, B, D, W, a1, O, ao, av)
+	local au = Vector(A)
+	local A = self:IsZero(au) and Vector(A.pos) or au
+	local ap = Vector(B.pos)
+	local av = B.ms
+	local ar, as = ap, ap
+	local at = 0
+	local N = self:GetDistance(A, ar) / D + a1 + a() / 1000
+	local aC, aD = self:IsAttacking(B)
+	local aE, aF = self:IsImmobile(B)
+	if aC then
+		at = q(1, O * 2 / av / (N - aD))
+	elseif aE then
+		if N < aF then
+			at = 1
 		else
-			aw = q(1, O * 2 / ay / (N - aI))
+			at = q(1, O * 2 / av / (N - aF))
 		end
 	else
-		aw = q(1, O * 2 / ay / N)
+		at = q(1, O * 2 / av / N)
 	end
 	if not B.visible then
-		aw = aw / 2
+		at = at / 2
 	end
-	if as and self:MinionCollision(A, au, D, W, a1, O) or MapPosition:inWall(au) then
-		aw = -1
-	elseif self:GetDistanceSqr(au, A) > W * W then
-		aw = 0
+	if ao and self:MinionCollision(A, ar, D, W, a1, O) or MapPosition:inWall(ar) then
+		at = -1
+	elseif self:GetDistanceSqr(ar, A) > W * W then
+		at = 0
 	end
-	return au, av, aw, N
+	return ar, as, at, N
 end
 
-function PremiumPrediction:GetStandardPrediction(A, B, D, W, a1, O, ar, as, ay)
-	local ax = Vector(A)
-	local A = self:IsZero(ax) and Vector(A.pos) or ax
-	local at = B.pos
+function PremiumPrediction:GetStandardPrediction(A, B, D, W, a1, O, an, ao, av)
+	local au = Vector(A)
+	local A = self:IsZero(au) and Vector(A.pos) or au
+	local ap = B.pos
 	local a1 = a1 + a() / 1000
-	local ay = B.ms
-	local av, au = at, at
-	local aw, N = 0, a1
-	local a8 = B.networkID
+	local av = B.ms
+	local as, ar = ap, ap
+	local at, N = 0, a1
+	local aq = B.networkID
 	if self:IsMoving(B) then
-		local a9 = z[a8] and #z[a8] >= 2 and #z[a8] or 1
-		local aJ = {
-			x = 0,
-			y = 0,
-			z = 0
-		}
-		for a2 = a9, 1, -1 do
-			local _, a0 = Vector(B.pathing.startPos), Vector(B.pathing.endPos)
-			if a9 >= 2 then
-				_, a0 = z[a8][a2].startPos, z[a8][a2].endPos
-			end
-			local az, aA, aB = a0.x - _.x, a0.y - _.y, a0.z - _.z
-			local aC = t(az * az + aB * aB)
-			local aD = Vector(az / aC * ay, aA / aC, aB / aC * ay)
-			if D ~= o then
-				local I, J = self:CalculateInterceptionTime(A, _, aD, D)
-				N = a1 + p(I, J)
-			end
-			local aK = q(N * ay, aC)
-			if ar and ar > 0 then
-				O = t(2 * aK * aK - 2 * aK * aK * l(ar))
-			end
-			av = Vector(_.x + aK * aD.x / ay, _.y + aK * aD.y / ay, _.z + aK * aD.z / ay)
-			au = self:GenerateCastPos(A, av, _, a0, D * N, O)
-			aJ = {
-				x = aJ.x + au.x,
-				y = aJ.y + au.y,
-				z = aJ.z + au.z
-			}
+		local _, a0 = ap, Vector(B.pathing.endPos)
+		local aw, ax, ay = a0.x - _.x, a0.y - _.y, a0.z - _.z
+		local az = t(aw * aw + ay * ay)
+		local aA = Vector(aw / az * av, ax / az * av, ay / az * av)
+		if D ~= o then
+			local I, J = self:CalculateInterceptionTime(A, _, aA, D)
+			N = a1 + p(I, J)
 		end
-		aJ = {
-			x = aJ.x / a9,
-			y = aJ.y / a9,
-			z = aJ.z / a9
-		}
-		local aL, aM = at, 0
+		local aG = q(N * av, az)
+		if an and an > 0 then
+			O = t(2 * aG * aG - 2 * aG * aG * l(an))
+		end
+		as = Vector(_.x + aG * aA.x / av, _.y + aG * aA.y / av, _.z + aG * aA.z / av)
+		ar = self:GenerateCastPos(A, as, _, a0, D * N, O)
+		local aH, aI, aJ = ap, 0, 0
 		for a2 = B.pathing.pathIndex, B.pathing.pathCount do
-			local aN, aO = B:GetPath(a2)
-			if aN then
-				local aP = t((aL.x - aN.x) ^ 2 + (aL.z - aN.z) ^ 2)
-				if a2 == B.pathing.pathIndex and a1 < aP / ay then
-					aL = aL + (aN - aL) / aP * ay * a1
-					aP = t((aL.x - aN.x) ^ 2 + (aL.z - aN.z) ^ 2)
-				end
-				local C = (aN - aL) / aP
-				local I, J = self:CalculateInterceptionTime(A, aL, C, D)
-				aO = aM + aP / ay
-				if not J or not (aM < J) or not (J < aO - aM) or not J then
-					J = nil
-				end
-				I = I and aM < I and I < aO - aM and I or nil
-				local aQ = I and J and q(I, J) or I or J
-				if aQ then
-					N = a1 + aQ
-					av = aL + C * ay * aQ
-					local aR = a1 + D * aQ
-					au = self:GenerateCastPos(A, av, aL, aN, aR, O)
-					break
+			local aK, aL = B:GetPath(a2)
+			if aK then
+				local aM = t((aH.x - aK.x) ^ 2 + (aH.z - aK.z) ^ 2)
+				if aJ < a1 + aJ + aM / av then
+					if a2 == B.pathing.pathIndex and a1 < aM / av then
+						aH = aH + (aK - aH) / aM * av * (aJ + a1)
+						aM = t((aH.x - aK.x) ^ 2 + (aH.z - aK.z) ^ 2)
+					end
+					do
+						local C = (aK - aH) / aM
+						local I, J = self:CalculateInterceptionTime(A, aH, C, D)
+						aL = aI + aM / av
+						if not J or not (aI < J) or not (J < aL - aI) or not J then
+							J = nil
+						end
+						I = I and aI < I and I < aL - aI and I or nil
+						local aN = I and J and q(I, J) or I or J
+						if aN then
+							N = a1 + aN
+							as = aH + C * av * aN
+							local aO = a1 + D * aN
+							ar = self:GenerateCastPos(A, as, aH, aK, aO, O)
+							break
+						end
+					end
+					aJ = p(0, aJ - aM / av)
 				end
 			end
-			aL = aN
-			aM = aO
+			aH = aK
+			aI = aL
 		end
-		if a9 >= 2 and aJ then
-			au = Vector((aJ.x + au.x) / 2, au.y, (aJ.z + au.z) / 2):Normalized()
-		end
-		aw = q(1, O * 2 / ay / N)
+		at = q(1, O * 2 / av / N)
 		if self:IsSlowed(B) then
-			aw = q(1, aw * 1.25)
+			at = q(1, at * 1.25)
 		end
 		if not B.visible then
-			aw = aw / 2
+			at = at / 2
 		end
-		if as and self:MinionCollision(A, au, D, W, a1, O) or MapPosition:inWall(au) then
-			aw = -1
-		elseif self:GetDistanceSqr(au, A) > W * W then
-			aw = 0
+		if ao and self:MinionCollision(A, ar, D, W, a1, O) or MapPosition:inWall(ar) then
+			at = -1
+		elseif self:GetDistanceSqr(ar, A) > W * W or ar == ap then
+			at = 0
 		end
-		return au, av, aw, N
+		return ar, as, at, N
 	end
 end
 
-function PremiumPrediction:GetLinearAOEPrediction(A, B, D, W, a1, O, ar, as)
-	local au, av, aw, N = self:GetPrediction(A, B, D, W, a1, O, ar, as)
+function PremiumPrediction:GetLinearAOEPrediction(A, B, D, W, a1, O, an, ao)
+	local ar, as, at, N = self:GetPrediction(A, B, D, W, a1, O, an, ao)
 	local A = Vector(A.pos)
-	local aS = 2 * O * 2 * O
-	local aT = au
-	local aU, aV = au.x, au.z
+	local aP = 2 * O * 2 * O
+	local aQ = ar
+	local aR, aS = ar.x, ar.z
 	do
-		local az, aB = aU - A.x, aV - A.z
-		local aC = t(az * aB + aB * aB)
-		aU = aU + az / aC * W
-		aV = aV + aB / aC * W
+		local aw, ay = aR - A.x, aS - A.z
+		local az = t(aw * ay + ay * ay)
+		aR = aR + aw / az * W
+		aS = aS + ay / az * W
 	end
-	for a2, aW in pairs(self:GetEnemyHeroes()) do
-		if self:ValidTarget(aW) and aW ~= B then
-			local aX, aY, aZ = self:GetPrediction(A, aW, D, W, a1, O, ar, as)
-			local G = (aX.x - A.x) * (aU - A.x) + (aX.z - A.z) * (aV - A.z)
-			if W > self:GetDistance(aX, A) then
-				local aQ = G / (W * W)
-				if aQ > 0 and aQ < 1 then
-					local a_ = Vector(A.x + aQ * (aU - A.x), 0, A.z + aQ * (aV - A.z))
-					local b0 = (aX.x - a_.x) * (aX.x - a_.x) + (aX.z - a_.z) * (aX.z - a_.z)
-					if aS > b0 then
-						aT = Vector(0.5 * (aT.x + aX.x), aT.y, 0.5 * (aT.z + aX.z))
-						aS = aS - 0.5 * b0
+	for a2, aT in pairs(self:GetEnemyHeroes()) do
+		if self:ValidTarget(aT) and aT ~= B then
+			local aU, aV, aW = self:GetPrediction(A, aT, D, W, a1, O, an, ao)
+			local G = (aU.x - A.x) * (aR - A.x) + (aU.z - A.z) * (aS - A.z)
+			if W > self:GetDistance(aU, A) then
+				local aN = G / (W * W)
+				if aN > 0 and aN < 1 then
+					local aX = Vector(A.x + aN * (aR - A.x), 0, A.z + aN * (aS - A.z))
+					local aY = (aU.x - aX.x) * (aU.x - aX.x) + (aU.z - aX.z) * (aU.z - aX.z)
+					if aP > aY then
+						aQ = Vector(0.5 * (aQ.x + aU.x), aQ.y, 0.5 * (aQ.z + aU.z))
+						aP = aP - 0.5 * aY
 					end
 				end
 			end
 		end
 	end
-	au = aT
-	return au, aw
+	ar = aQ
+	return ar, at
 end
 
-function PremiumPrediction:GetCircularAOEPrediction(A, B, D, W, a1, O, ar, as)
-	local au, av, aw, N = self:GetPrediction(A, B, D, W, a1, O, ar, as)
+function PremiumPrediction:GetCircularAOEPrediction(A, B, D, W, a1, O, an, ao)
+	local ar, as, at, N = self:GetPrediction(A, B, D, W, a1, O, an, ao)
 	local A = Vector(A.pos)
-	local aS = 2 * O * 2 * O
-	local aT = au
-	local aU, aV = au.x, au.z
-	for a2, aW in pairs(self:GetEnemyHeroes()) do
-		if self:ValidTarget(aW) and aW ~= B then
-			local aX, aY, aZ = self:GetPrediction(A, aW, D, W, a1, O, ar, as)
-			local b1 = (aX.x - aU) * (aX.x - aU) + (aX.z - aV) * (aX.z - aV)
-			if aS > b1 then
-				aT = Vector(0.5 * (aT.x + aX.x), aT.y, 0.5 * (aT.z + aX.z))
-				aS = aS - 0.5 * b1
+	local aP = 2 * O * 2 * O
+	local aQ = ar
+	local aR, aS = ar.x, ar.z
+	for a2, aT in pairs(self:GetEnemyHeroes()) do
+		if self:ValidTarget(aT) and aT ~= B then
+			local aU, aV, aW = self:GetPrediction(A, aT, D, W, a1, O, an, ao)
+			local aZ = (aU.x - aR) * (aU.x - aR) + (aU.z - aS) * (aU.z - aS)
+			if aP > aZ then
+				aQ = Vector(0.5 * (aQ.x + aU.x), aQ.y, 0.5 * (aQ.z + aU.z))
+				aP = aP - 0.5 * aZ
 			end
 		end
 	end
-	au = aT
-	return au, aw
+	ar = aQ
+	return ar, at
 end
 
-function PremiumPrediction:GetConicAOEPrediction(A, B, D, W, a1, O, ar, as)
-	if ar and ar > 0 then
-		local au, av, aw, N = self:GetPrediction(A, B, D, W, a1, O, ar, as)
+function PremiumPrediction:GetConicAOEPrediction(A, B, D, W, a1, O, an, ao)
+	if an and an > 0 then
+		local ar, as, at, N = self:GetPrediction(A, B, D, W, a1, O, an, ao)
 		local A = Vector(A.pos)
-		local aS = 2 * ar
-		local aT = au
-		local aU, aV = au.x, au.z
-		local az, aB = aU - A.x, aV - A.z
+		local aP = 2 * an
+		local aQ = ar
+		local aR, aS = ar.x, ar.z
+		local aw, ay = aR - A.x, aS - A.z
 		do
-			local aC = t(az * aB + aB * aB)
-			aU = aU + az / aC * W
-			aV = aV + aB / aC * W
+			local az = t(aw * ay + ay * ay)
+			aR = aR + aw / az * W
+			aS = aS + ay / az * W
 		end
-		for a2, aW in pairs(self:GetEnemyHeroes()) do
-			if self:ValidTarget(aW) and aW ~= B then
-				local aX, aY, aZ = self:GetPrediction(A, aW, D, W, a1, O, ar, as)
-				local b2 = self:GetDistance(aX, A)
-				if W > b2 then
-					local b3 = self:GetDistance(aT, A)
-					local b4 = (aT.x - A.x) * (aX.x - A.x) + (aT.z - A.z) * (aX.z - A.z)
-					local b5 = m(j(b4 / (b2 * b3)))
-					if aS > b5 then
-						aT = Vector(0.5 * (aT.x + aX.x), aT.y, 0.5 * (aT.z + aX.z))
-						aS = b5
+		for a2, aT in pairs(self:GetEnemyHeroes()) do
+			if self:ValidTarget(aT) and aT ~= B then
+				local aU, aV, aW = self:GetPrediction(A, aT, D, W, a1, O, an, ao)
+				local a_ = self:GetDistance(aU, A)
+				if W > a_ then
+					local b0 = self:GetDistance(aQ, A)
+					local b1 = (aQ.x - A.x) * (aU.x - A.x) + (aQ.z - A.z) * (aU.z - A.z)
+					local b2 = m(j(b1 / (a_ * b0)))
+					if aP > b2 then
+						aQ = Vector(0.5 * (aQ.x + aU.x), aQ.y, 0.5 * (aQ.z + aU.z))
+						aP = b2
 					end
 				end
 			end
 		end
-		au = aT
-		return au, aw
+		ar = aQ
+		return ar, at
 	end
 end
 
-function PremiumPrediction:GetHealthPrediction(a3, b6, N)
-	local b7 = a3.health
-	for a2 = 1, #b6 do
-		local b8 = b6[a2]
-		if b8.attackData.target == a3.handle then
-			local b9 = b8.totalDamage * (1 + b8.bonusDamagePercent) - a3.flatDamageReduction
-			local ba
-			if b8.attackData.projectileSpeed and b8.attackData.projectileSpeed > 0 then
-				ba = self:GetDistance(b8.pos, a3.pos) / b8.attackData.projectileSpeed
+function PremiumPrediction:GetHealthPrediction(a3, b3, N)
+	local b4 = a3.health
+	for a2 = 1, #b3 do
+		local b5 = b3[a2]
+		if b5.attackData.target == a3.handle then
+			local b6 = b5.totalDamage * (1 + b5.bonusDamagePercent) - a3.flatDamageReduction
+			local b7
+			if b5.attackData.projectileSpeed and b5.attackData.projectileSpeed > 0 then
+				b7 = self:GetDistance(b5.pos, a3.pos) / b5.attackData.projectileSpeed
 			else
-				ba = 0
+				b7 = 0
 			end
-			local bb = b8.attackData.endTime - b8.attackData.animationTime + ba + b8.attackData.windUpTime
-			if bb <= b() then
-				bb = bb + b8.attackData.animationTime + ba
+			local b8 = b5.attackData.endTime - b5.attackData.animationTime + b7 + b5.attackData.windUpTime
+			if b8 <= b() then
+				b8 = b8 + b5.attackData.animationTime + b7
 			end
-			while N > bb - b() do
-				b7 = b7 - b9
-				bb = bb + b8.attackData.animationTime + ba
+			while N > b8 - b() do
+				b4 = b4 - b6
+				b8 = b8 + b5.attackData.animationTime + b7
 			end
 		end
 	end
-	return b7
+	return b4
 end
