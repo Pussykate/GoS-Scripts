@@ -9,6 +9,11 @@
 
 	Changelog:
 
+	v1.0.1
+	+ Added Vayne
+	+ Added Interrupter to champions
+	+ Made minor changes
+
 	v1.0
 	+ Initial release
 
@@ -63,14 +68,15 @@ local TableInsert = table.insert
 local TableRemove = table.remove
 local TableSort = table.sort
 
+local Allies = {}; local Enemies = {}; local Turrets = {}
 local Module = {Awareness = nil, BaseUlt = nil, Champion = nil, TargetSelector = nil, Utility = nil}
 local OnDraws = {Awareness = nil, BaseUlt = nil, Champion = nil, TargetSelector = nil}
 local OnRecalls = {Awareness = nil, BaseUlt = nil}
 local OnTicks = {Champion = nil, Utility = nil}
 local BaseUltC = {["Ashe"] = true, ["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true}
-local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = false, ["Jhin"] = false, ["Jinx"] = false, ["KaiSa"] = false, ["Kalista"] = false, ["KogMaw"] = false, ["Lucian"] = false, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = false, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = false, ["Xayah"] = false}
+local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = false, ["Jhin"] = false, ["Jinx"] = false, ["KaiSa"] = false, ["Kalista"] = false, ["KogMaw"] = false, ["Lucian"] = false, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = false, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
 local Item_HK = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM3, [ITEM_4] = HK_ITEM4, [ITEM_5] = HK_ITEM5, [ITEM_6] = HK_ITEM6, [ITEM_7] = HK_ITEM7}
-local Version = "1.0"; local LuaVer = "1.0"
+local Version = "1.01"; local LuaVer = "1.0.1"
 local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.version"
 local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.lua"
 
@@ -84,7 +90,20 @@ function OnLoad()
 	Module.TargetSelector = GoSuTargetSelector()
 	Module.Utility = GoSuUtility()
 	if Champions[myHero.charName] then _G[myHero.charName]() end
+	LoadUnits()
 	AutoUpdate()
+end
+
+function LoadUnits()
+	for i = 1, GameHeroCount() do
+		local unit = GameHero(i)
+		if unit.team ~= myHero.team then TableInsert(Enemies, unit)
+		elseif unit.team == myHero.team and unit ~= myHero then TableInsert(Allies, unit) end
+	end
+	for i = 1, GameTurretCount() do
+		local turret = GameTurret(i)
+		if turret and turret.isEnemy then TableInsert(Turrets, turret) end
+	end
 end
 
 function DownloadFile(site, file)
@@ -108,6 +127,34 @@ function AutoUpdate()
 	end
 end
 
+local ChanellingSpells = {
+	["CaitlynAceintheHole"] = {charName = "Caitlyn", slot = _R, type = "targeted", displayName = "Ace in the Hole", danger = 3},
+	["Drain"] = {charName = "Fiddlesticks", slot = _W, type = "targeted", displayName = "Drain", danger = 2},
+	["Crowstorm"] = {charName = "Fiddlesticks", slot = _R, type = "skillshot", displayName = "Crowstorm", danger = 3},
+	["GalioW"] = {charName = "Galio", slot = _W, type = "skillshot", displayName = "Shield of Durand", danger = 2},
+	["GalioR"] = {charName = "Galio", slot = _R, type = "skillshot", displayName = "Hero's Entrance", danger = 3},
+	["GragasW"] = {charName = "Gragas", slot = _W, type = "skillshot", displayName = "Drunken Rage", danger = 1},
+	["ReapTheWhirlwind"] = {charName = "Janna", slot = _R, type = "skillshot", displayName = "Monsoon", danger = 2},
+	["KarthusFallenOne"] = {charName = "Karthus", slot = _R, type = "skillshot", displayName = "Requiem", danger = 3},
+	["KatarinaR"] = {charName = "Katarina", slot = _R, type = "skillshot", displayName = "Death Lotus", danger = 3},
+	["LucianR"] = {charName = "Lucian", slot = _R, type = "skillshot", displayName = "The Culling", danger = 2},
+	["AlZaharNetherGrasp"] = {charName = "Malzahar", slot = _R, type = "targeted", displayName = "Nether Grasp", danger = 3},
+	["Meditate"] = {charName = "MasterYi", slot = _Q, type = "skillshot", displayName = "Meditate", danger = 1},
+	["MissFortuneBulletTime"] = {charName = "MissFortune", slot = _R, type = "skillshot", displayName = "Bullet Time", danger = 3},
+	["AbsoluteZero"] = {charName = "Nunu", slot = _R, type = "skillshot", displayName = "Absolute Zero", danger = 3},
+	["PantheonRFall"] = {charName = "Pantheon", slot = _R, type = "skillshot", displayName = "Grand Skyfall [Fall]", danger = 3},
+	["PantheonRJump"] = {charName = "Pantheon", slot = _R, type = "skillshot", displayName = "Grand Skyfall [Jump]", danger = 3},
+	["PykeQ"] = {charName = "Pyke", slot = _Q, type = "skillshot", displayName = "Bone Skewer", danger = 1},
+	["ShenR"] = {charName = "Shen", slot = _R, type = "skillshot", displayName = "Stand United", danger = 2},
+	["SionQ"] = {charName = "Sion", slot = _Q, type = "skillshot", displayName = "Decimating Smash", danger = 2},
+	["Destiny"] = {charName = "TwistedFate", slot = _R, type = "skillshot", displayName = "Destiny", danger = 2},
+	["VarusQ"] = {charName = "Varus", slot = _Q, type = "skillshot", displayName = "Piercing Arrow", danger = 1},
+	["VelKozR"] = {charName = "VelKoz", slot = _R, type = "skillshot", displayName = "Life Form Disintegration Ray", danger = 3},
+	["ViQ"] = {charName = "Vi", slot = _Q, type = "skillshot", displayName = "Vault Breaker", danger = 2},
+	["XerathLocusOfPower2"] = {charName = "Xerath", slot = _R, type = "skillshot", displayName = "Rite of the Arcane", danger = 3},
+	["ZacR"] = {charName = "Zac", slot = _R, type = "skillshot", displayName = "Let's Bounce!", danger = 3},
+}
+
 local DamageTable = {
 	["Ashe"] = {
 		{slot = 1, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({20, 35, 50, 65, 80})[GoSuManager:GetCastLevel(myHero, _W)] + myHero.totalDamage)) end},
@@ -122,40 +169,40 @@ local DamageTable = {
 		{slot = 3, state = 1, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({180, 230, 280})[GoSuManager:GetCastLevel(myHero, _R)] + ({0.3, 0.9, 1.5})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.totalDamage + 0.4 * myHero.ap)) end},
 	},
 	["Draven"] = {
-		{slot = 3, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({175, 275, 375})[GoSuManager:GetCastLevel(myHero, _R)] + 1.1 * myHero.bonusDamage)) end},
-		{slot = 3, state = 1, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({350, 550, 750})[GoSuManager:GetCastLevel(myHero, _R)] + 2.2 * myHero.bonusDamage)) end},
+		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({175, 275, 375})[GoSuManager:GetCastLevel(myHero, _R)] + 1.1 * myHero.bonusDamage)) end},
+		{slot = 3, state = 1, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({350, 550, 750})[GoSuManager:GetCastLevel(myHero, _R)] + 2.2 * myHero.bonusDamage)) end},
 	},
 	["Ezreal"] = {
-		{slot = 0, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({15, 40, 65, 90, 115})[GoSuManager:GetCastLevel(myHero, _Q)] + 1.1 * myHero.totalDamage + 0.3 * myHero.ap)) end},
-		{slot = 3, state = 0, function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({175, 250, 325})[GoSuManager:GetCastLevel(myHero, _R)] + myHero.bonusDamage + 0.9 * myHero.ap)) end},
+		{slot = 0, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({15, 40, 65, 90, 115})[GoSuManager:GetCastLevel(myHero, _Q)] + 1.1 * myHero.totalDamage + 0.3 * myHero.ap)) end},
+		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({175, 250, 325})[GoSuManager:GetCastLevel(myHero, _R)] + myHero.bonusDamage + 0.9 * myHero.ap)) end},
 	},
 	["Jinx"] = {
-		{slot = 3, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({250, 350, 450})[GoSuManager:GetCastLevel(myHero, _R)] + 1.5 * myHero.bonusDamage + ({0.25, 0.3, 0.35})[GoSuManager:GetCastLevel(myHero, _R)] * target.maxHealth)) end},
-		{slot = 3, state = 1, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({25, 35, 45})[GoSuManager:GetCastLevel(myHero, _R)] + 0.15 * myHero.bonusDamage + ({0.25, 0.3, 0.35})[GoSuManager:GetCastLevel(myHero, _R)] * target.maxHealth)) end},
+		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({250, 350, 450})[GoSuManager:GetCastLevel(myHero, _R)] + 1.5 * myHero.bonusDamage + ({0.25, 0.3, 0.35})[GoSuManager:GetCastLevel(myHero, _R)] * target.maxHealth)) end},
+		{slot = 3, state = 1, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({25, 35, 45})[GoSuManager:GetCastLevel(myHero, _R)] + 0.15 * myHero.bonusDamage + ({0.25, 0.3, 0.35})[GoSuManager:GetCastLevel(myHero, _R)] * target.maxHealth)) end},
 	},
 	["Kalista"] = {
-		{slot = 2, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, GoSuManager:GotBuff(target, "kalistaexpungemarker") > 0 and ((({20, 30, 40, 50, 60})[GoSuManager:GetCastLevel(myHero, _E)] + 0.6 * myHero.bonusDamage) + ((GoSuManager:GotBuff(target, "kalistaexpungemarker") - 1) * (({10, 14, 19, 25, 32})[GoSuManager:GetCastLevel(myHero, _E)] + ({0.2, 0.2375, 0.275, 0.3125, 0.35})[GoSuManager:GetCastLevel(myHero, _E)] * myHero.totalDamage)))) end},
+		{slot = 2, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, GoSuManager:GotBuff(target, "kalistaexpungemarker") > 0 and ((({20, 30, 40, 50, 60})[GoSuManager:GetCastLevel(myHero, _E)] + 0.6 * myHero.bonusDamage) + ((GoSuManager:GotBuff(target, "kalistaexpungemarker") - 1) * (({10, 14, 19, 25, 32})[GoSuManager:GetCastLevel(myHero, _E)] + ({0.2, 0.2375, 0.275, 0.3125, 0.35})[GoSuManager:GetCastLevel(myHero, _E)] * myHero.totalDamage)))) end},
 	},
 	["KogMaw"] = {
-		{slot = 2, state = 0, function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({60, 105, 150, 195, 240})[GoSuManager:GetCastLevel(myHero, _E)] + 0.5 * myHero.ap)) end},
-		{slot = 3, state = 0, function(target) return GoSuManager:CalcMagicalDamage(myHero, target, ((({100, 140, 180})[GoSuManager:GetCastLevel(myHero, _R)] + 0.65 * myHero.bonusDamage + 0.25 * myHero.ap) * (GoSuManager:GetPercentHP(target) > 40 and 0.833 * (target.maxHealth / 100) or 1) * (GoSuManager:GetPercentHP(target) < 40 and 2 or 1))) end},
+		{slot = 2, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({60, 105, 150, 195, 240})[GoSuManager:GetCastLevel(myHero, _E)] + 0.5 * myHero.ap)) end},
+		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, ((({100, 140, 180})[GoSuManager:GetCastLevel(myHero, _R)] + 0.65 * myHero.bonusDamage + 0.25 * myHero.ap) * (GoSuManager:GetPercentHP(target) > 40 and 0.833 * (target.maxHealth / 100) or 1) * (GoSuManager:GetPercentHP(target) < 40 and 2 or 1))) end},
 	},
 	["Lucian"] = {
-		{slot = 3, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({400, 875, 1500})[GoSuManager:GetCastLevel(myHero, _R)] + ({5, 6.25, 7.5})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.totalDamage + ({2, 2.5, 3})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.ap)) end},
+		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({400, 875, 1500})[GoSuManager:GetCastLevel(myHero, _R)] + ({5, 6.25, 7.5})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.totalDamage + ({2, 2.5, 3})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.ap)) end},
 	},
 	["MissFortune"] = {
-		{slot = 3, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({9, 10.5, 12})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.totalDamage + ({2.4, 2.8, 3.2})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.ap)) end},
-		{slot = 3, state = 1, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({10.8, 12.6, 14.4})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.totalDamage + ({2.88, 3.36, 3.84})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.ap)) end},
+		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({9, 10.5, 12})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.totalDamage + ({2.4, 2.8, 3.2})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.ap)) end},
+		{slot = 3, state = 1, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({10.8, 12.6, 14.4})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.totalDamage + ({2.88, 3.36, 3.84})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.ap)) end},
 	},
 	["Tristana"] = {
-		{slot = 3, state = 0, function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({300, 400, 500})[GoSuManager:GetCastLevel(myHero, _R)] + myHero.ap)) end},
+		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({300, 400, 500})[GoSuManager:GetCastLevel(myHero, _R)] + myHero.ap)) end},
 	},
 	["Twitch"] = {
-		{slot = 3, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, ((({20, 30, 40, 50, 60})[GoSuManager:GetCastLevel(myHero, _E)]) + ((GoSuManager:GotBuff(target, "twitchdeadlyvenom") * (({15, 20, 25, 30, 35})[GoSuManager:GetCastLevel(myHero, _E)]) + 0.35 * myHero.bonusDamage + 0.2 * myHero.ap)))) end},
+		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, ((({20, 30, 40, 50, 60})[GoSuManager:GetCastLevel(myHero, _E)]) + ((GoSuManager:GotBuff(target, "twitchdeadlyvenom") * (({15, 20, 25, 30, 35})[GoSuManager:GetCastLevel(myHero, _E)]) + 0.35 * myHero.bonusDamage + 0.2 * myHero.ap)))) end},
 	},
 	["Vayne"] = {
-		{slot = 3, state = 0, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({50, 85, 120, 155, 190})[GoSuManager:GetCastLevel(myHero, _E)] + 0.5 * myHero.bonusDamage)) end},
-		{slot = 3, state = 1, function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({100, 170, 240, 310, 380})[GoSuManager:GetCastLevel(myHero, _E)] + myHero.bonusDamage)) end},
+		{slot = 2, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({50, 85, 120, 155, 190})[GoSuManager:GetCastLevel(myHero, _E)] + 0.5 * myHero.bonusDamage)) end},
+		{slot = 2, state = 1, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({100, 170, 240, 310, 380})[GoSuManager:GetCastLevel(myHero, _E)] + myHero.bonusDamage)) end},
 	},
 }
 
@@ -228,6 +275,10 @@ local SpellData = {
 	},
 	["Twitch"] = {
 		[1] = {speed = 1400, range = 950, delay = 0.25, radius = 300, collision = false},
+	},
+	["Vayne"] = {
+		[0] = {range = 300},
+		[2] = {range = 550},
 	},
 	["Varus"] = {
 		[0] = {speed = 1900 , range = 1525, delay = 0, radius = 70, collision = false},
@@ -333,6 +384,13 @@ function GoSuGeometry:LineSegmentIntersection(a, b, c, d)
 	return self:IsLineSegmentIntersection(a, b, c, d) and self:VectorIntersection(a, b, c, d)
 end
 
+function GoSuGeometry:RotateVector2D(startPos, endPos, theta)
+	local dx = endPos.x - startPos.x; local dy = endPos.y - startPos.y
+	local nx = dx * MathCos(theta) - dy * MathSin(theta); local ny = dx * MathSin(theta) + dy * MathCos(theta)
+	nx = nx + startPos.x; ny = ny + startPos.y
+	return Vector(nx, endPos.y, ny)
+end
+
 function GoSuGeometry:VectorDirection(v1, v2, v)
 	return ((v.z or v.y) - (v1.z or v1.y)) * (v2.x - v1.x) - ((v2.z or v2.y) - (v1.z or v1.y)) * (v.x - v1.x) 
 end
@@ -394,6 +452,10 @@ function GoSuManager:CalcPhysicalDamage(source, target, damage)
 	return MathMax(0, MathFloor(value * damage))
 end
 
+function GoSuManager:GetAllyHeroes()
+	return Allies
+end
+
 function GoSuManager:GetCastLevel(unit, slot)
 	return unit:GetSpellData(slot).level
 end
@@ -419,22 +481,15 @@ function GoSuManager:GetDamage(target, spell, state)
 end
 
 function GoSuManager:GetEnemyHeroes()
-	local t = {}
-	for i = 1, GameHeroCount() do
-		local hero = GameHero(i)
-		if hero.isEnemy then TableInsert(t, hero) end
-	end
-	return t
+	return Enemies
 end
 
 function GoSuManager:GetHeroesAround(pos, range, mode)
 	local range = range or MathHuge; local t = {}; local n = 0
-	for i = 1, GameHeroCount() do
-		local hero = GameHero(i)
-		if hero and not hero.isMe and not hero.dead and GoSuGeometry:GetDistance(pos, hero.pos) <= range then
-			if mode == "allies" and hero.team == myHero.team or mode ~= "allies" then
-				TableInsert(t, hero); n = n + 1
-			end
+	for i = 1, (mode == "allies" and #Allies or #Enemies) do
+		local unit = Allies[i]
+		if unit and not unit.dead and GoSuGeometry:GetDistance(pos, unit.pos) <= range then
+			TableInsert(t, unit); n = n + 1
 		end
 	end
 	return t, n
@@ -501,6 +556,16 @@ end
 
 function GoSuManager:IsReady(spell)
 	return GameCanUseSpell(spell) == 0
+end
+
+function GoSuManager:IsUnderTurret(pos)
+	for i = 1, #Turrets do
+		local turret = Turrets[i]
+		if turret and turret.valid and turret.health > 0 and GoSuGeometry:GetDistance(pos, turret.pos) <= 900 then
+			return true
+		end
+	end
+	return false
 end
 
 function GoSuManager:IsSlowed(unit)
@@ -826,7 +891,7 @@ function GoSuTargetSelector:Draw()
 		if self.TSMenu.ST:Value() then
 			if self.SelectedTarget == false then
 				for i, enemy in pairs(GoSuManager:GetEnemyHeroes()) do
-					if GoSuManager:ValidTarget(enemy) and IsInRange(mousePos, enemy.pos, 50) then self.SelectedTarget = enemy; break end
+					if GoSuManager:ValidTarget(enemy) and GoSuGeometry:IsInRange(mousePos, enemy.pos, 50) then self.SelectedTarget = enemy; break end
 				end
 			else
 				self.SelectedTarget = false
@@ -870,9 +935,8 @@ end
 
 class "Ashe"
 
-local target1, target2
-
 function Ashe:__init()
+	self.Target1 = nil; self.Target2 = nil
 	self.HeroIcon = "https://d1u5p3l4wpay3k.cloudfront.net/lolesports_gamepedia_en/4/4a/AsheSquare.png"
 	self.QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/2/2a/Ranger%27s_Focus_2.png"
 	self.WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/5/5d/Volley.png"
@@ -900,6 +964,12 @@ function Ashe:__init()
 	self.AsheMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
 	self.AsheMenu.AntiGapcloser:MenuElement({id = "UseR", name = "Use R [Enchanted Crystal Arrow]", value = true, leftIcon = self.RIcon})
 	self.AsheMenu.AntiGapcloser:MenuElement({id = "Distance", name = "Distance: R", value = 100, min = 25, max = 500, step = 25})
+	self.AsheMenu:MenuElement({id = "Interrupter", name = "Interrupter", type = MENU})
+	self.AsheMenu.Interrupter:MenuElement({id = "UseRDash", name = "Use R On Dashing Spells", value = false, leftIcon = self.RIcon})
+	self.AsheMenu.Interrupter:MenuElement({id = "UseRChan", name = "Use R On Channeling Spells", value = true, leftIcon = self.RIcon})
+	self.AsheMenu.Interrupter:MenuElement({id = "CSpells", name = "Channeling Spells", type = MENU})
+	self.AsheMenu.Interrupter:MenuElement({id = "Distance", name = "Distance: R", value = 1000, min = 100, max = 1500, step = 50})
+	self.AsheMenu.Interrupter:MenuElement({id = "Dng", name = "Minimum Danger Level To Cast", value = 3, min = 1, max = 3, step = 1})
 	self.AsheMenu:MenuElement({id = "HitChance", name = "HitChance", type = MENU})
 	self.AsheMenu.HitChance:MenuElement({id = "HCW", name = "HitChance: W", value = 10, min = 0, max = 100, step = 1})
 	self.AsheMenu.HitChance:MenuElement({id = "HCR", name = "HitChance: R", value = 40, min = 0, max = 100, step = 1})
@@ -914,6 +984,19 @@ function Ashe:__init()
 	self.AsheMenu:MenuElement({id = "blank", name = "GoS-U Reborn v"..LuaVer.."", type = SPACE})
 	self.AsheMenu:MenuElement({id = "blank", name = "Author: Ark223", type = SPACE})
 	self.AsheMenu:MenuElement({id = "blank", name = "Credits: gamsteron", type = SPACE})
+	self.Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
+	DelayAction(function()
+		for i, spell in pairs(ChanellingSpells) do
+			for j, hero in pairs(GoSuManager:GetEnemyHeroes()) do
+				if not ChanellingSpells[i] then return end
+				if spell.charName == hero.charName then
+					if not self.AsheMenu.Interrupter.CSpells[i] then self.AsheMenu.Interrupter.CSpells:MenuElement({id = i, name = ""..spell.charName.." "..self.Slot[spell.slot].." | "..spell.displayName, type = MENU}) end
+					self.AsheMenu.Interrupter.CSpells[i]:MenuElement({id = "Detect"..i, name = "Detect Spell", value = true})
+					self.AsheMenu.Interrupter.CSpells[i]:MenuElement({id = "Danger"..i, name = "Danger Level", value = (spell.danger or 3), min = 1, max = 3, step = 1})
+				end
+			end
+		end
+	end, 0.1)
 	OnDraws.Champion = function() self:Draw() end
 	OnTicks.Champion = function() self:Tick() end
 	_G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
@@ -922,12 +1005,13 @@ end
 function Ashe:Tick()
 	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen()) then return end
 	self:Auto2()
-	target1 = Module.TargetSelector:GetTarget(self.WData.range, nil)
-	target2 = Module.TargetSelector:GetTarget(self.AsheMenu.Combo.Distance:Value(), nil)
-	if target2 == nil then return end
-	if GoSuManager:GetOrbwalkerMode() == "Combo" then Module.Utility:Tick(); self:Combo(target1, target2)
-	elseif GoSuManager:GetOrbwalkerMode() == "Harass" then self:Harass(target1)
-	else self:Auto(target1) end
+	self.Range = myHero.range + myHero.boundingRadius * 1.5
+	self.Target1 = Module.TargetSelector:GetTarget(self.WData.range, nil)
+	self.Target2 = Module.TargetSelector:GetTarget(self.AsheMenu.Combo.Distance:Value(), nil)
+	if self.Target2 == nil then return end
+	if GoSuManager:GetOrbwalkerMode() == "Combo" then Module.Utility:Tick(); self:Combo(self.Target1, self.Target2)
+	elseif GoSuManager:GetOrbwalkerMode() == "Harass" then self:Harass(self.Target1)
+	else self:Auto(self.Target1) end
 end
 
 function Ashe:Draw()
@@ -937,7 +1021,7 @@ end
 
 function Ashe:OnPreAttack(args)
 	if (self.AsheMenu.Combo.UseQ:Value() and GoSuManager:GetOrbwalkerMode() == "Combo") or (GoSuManager:GetPercentMana(myHero) > self.AsheMenu.Harass.MP:Value() and self.AsheMenu.Harass.UseQ:Value() and GoSuManager:GetOrbwalkerMode() == "Harass") then
-		local target = Module.TargetSelector:GetTarget(myHero.range + myHero.boundingRadius * 2, nil); args.Target = target
+		local target = Module.TargetSelector:GetTarget(self.Range, nil); args.Target = target
 		if GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, AARange) and GoSuManager:GotBuff(myHero, "asheqcastready") == 4 then
 			ControlCastSpell(HK_Q)
 		end
@@ -955,7 +1039,7 @@ end
 
 function Ashe:Auto2()
 	for i, enemy in pairs(GoSuManager:GetEnemyHeroes()) do
-		if GoSuManager:IsReady(_R) then
+		if GoSuManager:IsReady(_R) and enemy then
 			if self.AsheMenu.AntiGapcloser.UseR:Value() and GoSuManager:ValidTarget(enemy, self.AsheMenu.AntiGapcloser.Distance:Value()) then
 				self:UseR(enemy, self.AsheMenu.AntiGapcloser.Distance:Value())
 			end
@@ -965,15 +1049,32 @@ function Ashe:Auto2()
 					self:UseR(enemy, self.AsheMenu.KillSteal.Distance:Value())
 				end
 			end
+			if GoSuManager:ValidTarget(enemy, self.AsheMenu.Interrupter.Distance:Value()) then
+				if self.AsheMenu.Interrupter.UseRChan:Value() then
+					if enemy.activeSpell and enemy.activeSpell.isChanneling then
+						local spell = enemy.activeSpell
+						if ChanellingSpells[spell.name] and self.AsheMenu.Interrupter.CSpells[spell.name] and self.AsheMenu.Interrupter.CSpells[spell.name]["Detect"..spell.name]:Value() then
+							if self.AsheMenu.Interrupter.CSpells[spell.name]["Danger"..spell.name]:Value() >= self.AsheMenu.Interrupter.Dng:Value() then
+								self:UseR(enemy, self.AsheMenu.Interrupter.Distance:Value())
+							end
+						end
+					end
+				end
+				if self.AsheMenu.Interrupter.UseRDash:Value() then
+					if enemy.pathing.isDashing and enemy.pathing.dashSpeed > 500 then
+						if GoSuManager:GetDistance(enemy.pos, myHero.pos) > GoSuManager:GetDistance(enemy.pathing.endPos, myHero.pos) then
+							self:UseR(enemy, self.AsheMenu.Interrupter.Distance:Value())
+						end
+					end
+				end
+			end
 		end
 	end
 	if GoSuManager:IsReady(_E) then
 		local Spot = nil
 		if self.AsheMenu.Misc.UseEBaron:Value() then Spot = Vector(4942, -71, 10400):ToMM()
 		elseif self.AsheMenu.Misc.UseEDragon:Value() then Spot = Vector(9832, -71, 4360):ToMM() end
-		if Spot then
-			ControlCastSpell(HK_E, Spot.x, Spot.y)
-		end
+		if Spot then ControlCastSpell(HK_E, Spot.x, Spot.y) end
 	end
 end
 
@@ -1005,6 +1106,207 @@ end
 function Ashe:UseR(target, range)
 	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.RData.speed, range, self.RData.delay, self.RData.radius, nil, self.RData.collision)
 	if CastPos and HitChance >= (self.AsheMenu.HitChance.HCR:Value() / 100) then ControlCastSpell(HK_R, CastPos) end
+end
+
+--[[
+	┬  ┬┌─┐┬ ┬┌┐┌┌─┐
+	└┐┌┘├─┤└┬┘│││├┤ 
+	 └┘ ┴ ┴ ┴ ┘└┘└─┘
+--]]
+
+class "Vayne"
+
+function Vayne:__init()
+	self.Target = nil; self.Timer = GameTimer()
+	self.HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/95/VayneSquare.png"
+	self.QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/8/8d/Tumble.png"
+	self.EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/6/66/Condemn.png"
+	self.RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/b/b4/Final_Hour.png"
+	self.QData = SpellData[myHero.charName][0]; self.EData = SpellData[myHero.charName][2]
+	self.VayneMenu = MenuElement({type = MENU, id = "Vayne", name = "[GoS-U] Vayne", leftIcon = self.HeroIcon})
+	self.VayneMenu:MenuElement({id = "Auto", name = "Auto", type = MENU})
+	self.VayneMenu.Auto:MenuElement({id = "UseE", name = "Use E [Condemn]", value = true, leftIcon = self.EIcon})
+	self.VayneMenu.Auto:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	self.VayneMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.VayneMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Tumble]", value = true, leftIcon = self.QIcon})
+	self.VayneMenu.Combo:MenuElement({id = "UseE", name = "Use E [Condemn]", value = true, leftIcon = self.EIcon})
+	self.VayneMenu.Combo:MenuElement({id = "UseR", name = "Use R [Final Hour]", value = true, leftIcon = self.RIcon})
+	self.VayneMenu.Combo:MenuElement({id = "ModeQ", name = "Cast Mode: Q", drop = {"Mouse", "Smart"}, value = 2})
+	self.VayneMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 1000, min = 100, max = 2000, step = 50})
+	self.VayneMenu.Combo:MenuElement({id = "X", name = "Minimum Enemies: R", value = 1, min = 0, max = 5, step = 1})
+	self.VayneMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
+	self.VayneMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.VayneMenu.Harass:MenuElement({id = "UseQ", name = "Use Q [Tumble]", value = true, leftIcon = self.QIcon})
+	self.VayneMenu.Harass:MenuElement({id = "UseE", name = "Use E [Condemn]", value = true, leftIcon = self.EIcon})
+	self.VayneMenu.Harass:MenuElement({id = "ModeQ", name = "Cast Mode: Q", drop = {"Mouse", "Smart"}, value = 1})
+	self.VayneMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
+	self.VayneMenu.KillSteal:MenuElement({id = "UseE", name = "Use E [Condemn]", value = true, leftIcon = self.EIcon})
+	self.VayneMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
+	self.VayneMenu.AntiGapcloser:MenuElement({id = "UseE", name = "Use E [Condemn]", value = true, leftIcon = self.EIcon})
+	self.VayneMenu.AntiGapcloser:MenuElement({id = "Distance", name = "Distance: E", value = 75, min = 25, max = 500, step = 25})
+	self.VayneMenu:MenuElement({id = "Interrupter", name = "Interrupter", type = MENU})
+	self.VayneMenu.Interrupter:MenuElement({id = "UseEDash", name = "Use E On Dashing Spells", value = false, leftIcon = self.RIcon})
+	self.VayneMenu.Interrupter:MenuElement({id = "UseEChan", name = "Use E On Channeling Spells", value = true, leftIcon = self.RIcon})
+	self.VayneMenu.Interrupter:MenuElement({id = "CSpells", name = "Channeling Spells", type = MENU})
+	self.VayneMenu.Interrupter:MenuElement({id = "Distance", name = "Distance: E", value = self.EData.range, min = 100, max = self.EData.range, step = 50})
+	self.VayneMenu.Interrupter:MenuElement({id = "Dng", name = "Minimum Danger Level To Cast", value = 3, min = 1, max = 3, step = 1})
+	self.VayneMenu:MenuElement({id = "HitChance", name = "HitChance", type = MENU})
+	self.VayneMenu.HitChance:MenuElement({id = "HCE", name = "HitChance: E", value = 10, min = 0, max = 100, step = 1})
+	self.VayneMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
+	self.VayneMenu.Drawings:MenuElement({id = "DrawQ", name = "Draw Q Range", value = true})
+	self.VayneMenu.Drawings:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
+	self.VayneMenu.Drawings:MenuElement({id = "QRng", name = "Q Range Color", color = DrawColor(192, 0, 250, 154)})
+	self.VayneMenu.Drawings:MenuElement({id = "ERng", name = "E Range Color", color = DrawColor(192, 255, 140, 0)})
+	self.VayneMenu:MenuElement({id = "Misc", name = "Misc", type = MENU})
+	self.VayneMenu.Misc:MenuElement({id = "BlockAA", name = "Block AA While Stealthed", value = false})
+	self.VayneMenu.Misc:MenuElement({id = "PD", name = "Push Distance: E", value = 450, min = 100, max = 475, step = 5})
+	self.VayneMenu:MenuElement({id = "blank", name = "GoS-U Reborn v"..LuaVer.."", type = SPACE})
+	self.VayneMenu:MenuElement({id = "blank", name = "Author: Ark223", type = SPACE})
+	self.VayneMenu:MenuElement({id = "blank", name = "Credits: gamsteron", type = SPACE})
+	self.Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
+	DelayAction(function()
+		for i, spell in pairs(ChanellingSpells) do
+			for j, hero in pairs(GoSuManager:GetEnemyHeroes()) do
+				if not ChanellingSpells[i] then return end
+				if spell.charName == hero.charName then
+					if not self.VayneMenu.Interrupter.CSpells[i] then self.VayneMenu.Interrupter.CSpells:MenuElement({id = i, name = ""..spell.charName.." "..self.Slot[spell.slot].." | "..spell.displayName, type = MENU}) end
+					self.VayneMenu.Interrupter.CSpells[i]:MenuElement({id = "Detect"..i, name = "Detect Spell", value = true})
+					self.VayneMenu.Interrupter.CSpells[i]:MenuElement({id = "Danger"..i, name = "Danger Level", value = (spell.danger or 1), min = 1, max = 3, step = 1})
+				end
+			end
+		end
+	end, 0.1)
+	OnDraws.Champion = function() self:Draw() end
+	OnTicks.Champion = function() self:Tick() end
+	_G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
+	_G.SDK.Orbwalker:OnPostAttackTick(function(...) self:OnPostAttackTick(...) end)
+end
+
+function Vayne:Tick()
+	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen()) then return end
+	if GameTimer() > self.Timer + 1 and GoSuManager:GotBuff(myHero, "vaynetumblebonus") > 0 then
+		_G.SDK.Orbwalker:__OnAutoAttackReset(); self.Timer = GameTimer()
+	end
+	self:Auto2()
+	self.Range = myHero.range + myHero.boundingRadius * 1.5
+	self.Target = Module.TargetSelector:GetTarget(self.Range + self.QData.range, nil)
+	if self.Target == nil then return end
+	if GoSuManager:GetOrbwalkerMode() == "Combo" then Module.Utility:Tick(); self:Combo(self.Target)
+	elseif GoSuManager:GetOrbwalkerMode() == "Harass" then self:Harass(self.Target)
+	else self:Auto(self.Target) end
+end
+
+function Vayne:Draw()
+	if self.VayneMenu.Drawings.DrawQ:Value() then DrawCircle(myHero.pos, self.QData.range, 1, self.VayneMenu.Drawings.QRng:Value()) end
+	if self.VayneMenu.Drawings.DrawE:Value() then DrawCircle(myHero.pos, self.EData.range, 1, self.VayneMenu.Drawings.ERng:Value()) end
+end
+
+function Vayne:OnPreAttack(args)
+	if GoSuManager:GetOrbwalkerMode() == "Combo" or GoSuManager:GetOrbwalkerMode() == "Harass" then
+		local target = Module.TargetSelector:GetTarget(self.Range, nil); args.Target = target
+	end
+end
+
+function Vayne:OnPostAttackTick(args)
+	if (self.VayneMenu.Combo.UseQ:Value() and GoSuManager:GetOrbwalkerMode() == "Combo") or (self.VayneMenu.Harass.UseQ:Value() and GoSuManager:GetOrbwalkerMode() == "Harass") then
+		if self.Target and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(self.Target, self.Range) then
+			self:UseQ(self.Target, GoSuManager:GetOrbwalkerMode() == "Combo" and self.VayneMenu.Combo.ModeQ:Value() or self.VayneMenu.Harass.ModeQ:Value())
+		end
+	end
+end
+
+function Vayne:Auto(target)
+	if target == nil and myHero.attackData.state == 2 then return end
+	if self.VayneMenu.Auto.UseE:Value() then
+		if GoSuManager:GetPercentMana(myHero) > self.VayneMenu.Auto.MP:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target, self.EData.range) then
+			if self:IsOnLineToStun(target) then ControlCastSpell(HK_E, target.pos) end
+		end
+	end
+end
+
+function Vayne:Auto2()
+	for i, enemy in pairs(GoSuManager:GetEnemyHeroes()) do
+		if GoSuManager:IsReady(_R) then
+			if self.VayneMenu.AntiGapcloser.UseE:Value() and GoSuManager:ValidTarget(enemy, self.VayneMenu.AntiGapcloser.Distance:Value()) then
+				ControlCastSpell(HK_E, enemy.pos)
+			end
+			if self.VayneMenu.KillSteal.UseE:Value() and GoSuManager:ValidTarget(enemy, self.EData.range) then
+				local EDmg = GoSuManager:GetDamage(enemy, 2, 0) * 2 / 3
+				if EDmg > enemy.health then
+					ControlCastSpell(HK_E, enemy.pos)
+				end
+			end
+			if GoSuManager:ValidTarget(enemy, self.VayneMenu.Interrupter.Distance:Value()) then
+				if self.VayneMenu.Interrupter.UseEChan:Value() then
+					if enemy.activeSpell and enemy.activeSpell.isChanneling then
+						local spell = enemy.activeSpell
+						if ChanellingSpells[spell.name] and self.VayneMenu.Interrupter.CSpells[spell.name] and self.VayneMenu.Interrupter.CSpells[spell.name]["Detect"..spell.name]:Value() then
+							if self.VayneMenu.Interrupter.CSpells[spell.name]["Danger"..spell.name]:Value() >= self.VayneMenu.Interrupter.Dng:Value() then
+								self:UseE(enemy, self.VayneMenu.Interrupter.Distance:Value())
+							end
+						end
+					end
+				end
+				if self.VayneMenu.Interrupter.UseEDash:Value() then
+					if enemy.pathing.isDashing and enemy.pathing.dashSpeed > 500 then
+						if GoSuManager:GetDistance(enemy.pos, myHero.pos) > GoSuManager:GetDistance(enemy.pathing.endPos, myHero.pos) then
+							self:UseE(enemy, self.VayneMenu.Interrupter.Distance:Value())
+						end
+					end
+				end
+			end
+		end
+	end
+	if self.VayneMenu.Misc.BlockAA:Value() then
+		if GoSuManager:GotBuff(myHero, "vaynetumblefade") == 0 then _G.SDK.Orbwalker:SetAttack(true)
+		else _G.SDK.Orbwalker:SetAttack(false) end
+	end
+end
+
+function Vayne:Combo(target)
+	if target == nil and myHero.attackData.state == 2 then return end
+	if self.VayneMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.Range + self.QData.range) and GoSuGeometry:GetDistance(target.pos, myHero.pos) > (myHero.range + myHero.boundingRadius) then
+		self:UseQ(target, self.VayneMenu.Combo.ModeQ:Value())
+	end
+	if self.VayneMenu.Combo.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target, self.EData.range) then
+		if self:IsOnLineToStun(target) then ControlCastSpell(HK_E, target.pos) end
+	end
+	if self.VayneMenu.Combo.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target, self.VayneMenu.Combo.Distance:Value()) then
+		local enemies, count = GoSuManager:GetHeroesAround(myHero.pos, self.VayneMenu.Combo.Distance:Value())
+		if GoSuManager:GetPercentHP(target) < self.VayneMenu.Combo.HP:Value() and count >= self.VayneMenu.Combo.X:Value() then			
+			ControlCastSpell(HK_R)
+		end
+	end
+end
+
+function Vayne:Harass(target)
+	if target == nil and myHero.attackData.state == 2 then return end
+	if self.VayneMenu.Harass.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.Range + self.QData.range) and GoSuGeometry:GetDistance(target.pos, myHero.pos) > (myHero.range + myHero.boundingRadius) then
+		self:UseQ(target, self.VayneMenu.Harass.ModeQ:Value())
+	end
+	if self.VayneMenu.Harass.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target, self.EData.range) then
+		if self:IsOnLineToStun(target) then ControlCastSpell(HK_E, target.pos) end
+	end
+end
+
+function Vayne:UseQ(target, mode)
+	local MPos = myHero.pos:Extended(mousePos, 300); local QPos = MPos
+	if mode == 2 and GoSuManager:IsReady(_E) then
+		local Pos = nil
+		for i = 20, 360, 20 do
+			Pos = GoSuGeometry:RotateVector2D(myHero.pos, MPos, MathRad(i))
+			if GoSuGeometry:GetDistance(Pos, target.pos) < self.EData.range and self:IsOnLineToStun(target) and not GoSuManager:IsUnderTurret(Pos) then QPos = Pos; break end
+		end
+	end
+	ControlCastSpell(HK_Q, QPos)
+end
+
+function Vayne:IsOnLineToStun(target)
+	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, 2000, GoSuGeometry:GetDistance(myHero.pos, target.pos), 0.25, target.boundingRadius / 2, nil, false)
+	if CastPos and HitChance >= (self.VayneMenu.HitChance.HCE:Value() / 100) then
+		local Line = LineSegment(CastPos, CastPos:Extended(myHero.pos, -self.VayneMenu.Misc.PD:Value()))
+		return MapPosition:intersectsWall(Line)
+	end
 end
 
 --
