@@ -56,7 +56,7 @@ local u = table.insert
 local v = table.remove
 local w = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.version"
 local x = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua"
-local y = "1.08"
+local y = "1.09"
 
 function AutoUpdate()
 	DownloadFileAsync(w, COMMON_PATH .. "PremiumPrediction.version", function()
@@ -363,10 +363,9 @@ function PremiumPrediction:GetStandardPrediction(A, B, D, W, a1, O, an, ao, av)
 						I = I and aI < I and I < aL - aI and I or nil
 						local aN = I and J and q(I, J) or I or J
 						if aN then
-							N = a1 + aN
+							N = D ~= o and a1 + aN or a1
 							as = aH + C * av * aN
-							local aO = a1 + D * aN
-							ar = self:GenerateCastPos(A, as, aH, aK, aO, O)
+							ar = self:GenerateCastPos(A, as, aH, aK, D * N, O)
 							break
 						end
 					end
@@ -395,53 +394,53 @@ end
 function PremiumPrediction:GetLinearAOEPrediction(A, B, D, W, a1, O, an, ao)
 	local ar, as, at, N = self:GetPrediction(A, B, D, W, a1, O, an, ao)
 	local A = Vector(A.pos)
-	local aP = 2 * O * 2 * O
-	local aQ = ar
-	local aR, aS = ar.x, ar.z
+	local aO = 2 * O * 2 * O
+	local aP = ar
+	local aQ, aR = ar.x, ar.z
 	do
-		local aw, ay = aR - A.x, aS - A.z
+		local aw, ay = aQ - A.x, aR - A.z
 		local az = t(aw * ay + ay * ay)
-		aR = aR + aw / az * W
-		aS = aS + ay / az * W
+		aQ = aQ + aw / az * W
+		aR = aR + ay / az * W
 	end
-	for a2, aT in pairs(self:GetEnemyHeroes()) do
-		if self:ValidTarget(aT) and aT ~= B then
-			local aU, aV, aW = self:GetPrediction(A, aT, D, W, a1, O, an, ao)
-			local G = (aU.x - A.x) * (aR - A.x) + (aU.z - A.z) * (aS - A.z)
-			if W > self:GetDistance(aU, A) then
+	for a2, aS in pairs(self:GetEnemyHeroes()) do
+		if self:ValidTarget(aS) and aS ~= B then
+			local aT, aU, aV = self:GetPrediction(A, aS, D, W, a1, O, an, ao)
+			local G = (aT.x - A.x) * (aQ - A.x) + (aT.z - A.z) * (aR - A.z)
+			if W > self:GetDistance(aT, A) then
 				local aN = G / (W * W)
 				if aN > 0 and aN < 1 then
-					local aX = Vector(A.x + aN * (aR - A.x), 0, A.z + aN * (aS - A.z))
-					local aY = (aU.x - aX.x) * (aU.x - aX.x) + (aU.z - aX.z) * (aU.z - aX.z)
-					if aP > aY then
-						aQ = Vector(0.5 * (aQ.x + aU.x), aQ.y, 0.5 * (aQ.z + aU.z))
-						aP = aP - 0.5 * aY
+					local aW = Vector(A.x + aN * (aQ - A.x), 0, A.z + aN * (aR - A.z))
+					local aX = (aT.x - aW.x) * (aT.x - aW.x) + (aT.z - aW.z) * (aT.z - aW.z)
+					if aO > aX then
+						aP = Vector(0.5 * (aP.x + aT.x), aP.y, 0.5 * (aP.z + aT.z))
+						aO = aO - 0.5 * aX
 					end
 				end
 			end
 		end
 	end
-	ar = aQ
+	ar = aP
 	return ar, at
 end
 
 function PremiumPrediction:GetCircularAOEPrediction(A, B, D, W, a1, O, an, ao)
 	local ar, as, at, N = self:GetPrediction(A, B, D, W, a1, O, an, ao)
 	local A = Vector(A.pos)
-	local aP = 2 * O * 2 * O
-	local aQ = ar
-	local aR, aS = ar.x, ar.z
-	for a2, aT in pairs(self:GetEnemyHeroes()) do
-		if self:ValidTarget(aT) and aT ~= B then
-			local aU, aV, aW = self:GetPrediction(A, aT, D, W, a1, O, an, ao)
-			local aZ = (aU.x - aR) * (aU.x - aR) + (aU.z - aS) * (aU.z - aS)
-			if aP > aZ then
-				aQ = Vector(0.5 * (aQ.x + aU.x), aQ.y, 0.5 * (aQ.z + aU.z))
-				aP = aP - 0.5 * aZ
+	local aO = 2 * O * 2 * O
+	local aP = ar
+	local aQ, aR = ar.x, ar.z
+	for a2, aS in pairs(self:GetEnemyHeroes()) do
+		if self:ValidTarget(aS) and aS ~= B then
+			local aT, aU, aV = self:GetPrediction(A, aS, D, W, a1, O, an, ao)
+			local aY = (aT.x - aQ) * (aT.x - aQ) + (aT.z - aR) * (aT.z - aR)
+			if aO > aY then
+				aP = Vector(0.5 * (aP.x + aT.x), aP.y, 0.5 * (aP.z + aT.z))
+				aO = aO - 0.5 * aY
 			end
 		end
 	end
-	ar = aQ
+	ar = aP
 	return ar, at
 end
 
@@ -449,56 +448,56 @@ function PremiumPrediction:GetConicAOEPrediction(A, B, D, W, a1, O, an, ao)
 	if an and an > 0 then
 		local ar, as, at, N = self:GetPrediction(A, B, D, W, a1, O, an, ao)
 		local A = Vector(A.pos)
-		local aP = 2 * an
-		local aQ = ar
-		local aR, aS = ar.x, ar.z
-		local aw, ay = aR - A.x, aS - A.z
+		local aO = 2 * an
+		local aP = ar
+		local aQ, aR = ar.x, ar.z
+		local aw, ay = aQ - A.x, aR - A.z
 		do
 			local az = t(aw * ay + ay * ay)
-			aR = aR + aw / az * W
-			aS = aS + ay / az * W
+			aQ = aQ + aw / az * W
+			aR = aR + ay / az * W
 		end
-		for a2, aT in pairs(self:GetEnemyHeroes()) do
-			if self:ValidTarget(aT) and aT ~= B then
-				local aU, aV, aW = self:GetPrediction(A, aT, D, W, a1, O, an, ao)
-				local a_ = self:GetDistance(aU, A)
-				if W > a_ then
-					local b0 = self:GetDistance(aQ, A)
-					local b1 = (aQ.x - A.x) * (aU.x - A.x) + (aQ.z - A.z) * (aU.z - A.z)
-					local b2 = m(j(b1 / (a_ * b0)))
-					if aP > b2 then
-						aQ = Vector(0.5 * (aQ.x + aU.x), aQ.y, 0.5 * (aQ.z + aU.z))
-						aP = b2
+		for a2, aS in pairs(self:GetEnemyHeroes()) do
+			if self:ValidTarget(aS) and aS ~= B then
+				local aT, aU, aV = self:GetPrediction(A, aS, D, W, a1, O, an, ao)
+				local aZ = self:GetDistance(aT, A)
+				if W > aZ then
+					local a_ = self:GetDistance(aP, A)
+					local b0 = (aP.x - A.x) * (aT.x - A.x) + (aP.z - A.z) * (aT.z - A.z)
+					local b1 = m(j(b0 / (aZ * a_)))
+					if aO > b1 then
+						aP = Vector(0.5 * (aP.x + aT.x), aP.y, 0.5 * (aP.z + aT.z))
+						aO = b1
 					end
 				end
 			end
 		end
-		ar = aQ
+		ar = aP
 		return ar, at
 	end
 end
 
-function PremiumPrediction:GetHealthPrediction(a3, b3, N)
-	local b4 = a3.health
-	for a2 = 1, #b3 do
-		local b5 = b3[a2]
-		if b5.attackData.target == a3.handle then
-			local b6 = b5.totalDamage * (1 + b5.bonusDamagePercent) - a3.flatDamageReduction
-			local b7
-			if b5.attackData.projectileSpeed and b5.attackData.projectileSpeed > 0 then
-				b7 = self:GetDistance(b5.pos, a3.pos) / b5.attackData.projectileSpeed
+function PremiumPrediction:GetHealthPrediction(a3, b2, N)
+	local b3 = a3.health
+	for a2 = 1, #b2 do
+		local b4 = b2[a2]
+		if b4.attackData.target == a3.handle then
+			local b5 = b4.totalDamage * (1 + b4.bonusDamagePercent) - a3.flatDamageReduction
+			local b6
+			if b4.attackData.projectileSpeed and b4.attackData.projectileSpeed > 0 then
+				b6 = self:GetDistance(b4.pos, a3.pos) / b4.attackData.projectileSpeed
 			else
-				b7 = 0
+				b6 = 0
 			end
-			local b8 = b5.attackData.endTime - b5.attackData.animationTime + b7 + b5.attackData.windUpTime
-			if b8 <= b() then
-				b8 = b8 + b5.attackData.animationTime + b7
+			local b7 = b4.attackData.endTime - b4.attackData.animationTime + b6 + b4.attackData.windUpTime
+			if b7 <= b() then
+				b7 = b7 + b4.attackData.animationTime + b6
 			end
-			while N > b8 - b() do
-				b4 = b4 - b6
-				b8 = b8 + b5.attackData.animationTime + b7
+			while N > b7 - b() do
+				b3 = b3 - b5
+				b7 = b7 + b4.attackData.animationTime + b6
 			end
 		end
 	end
-	return b4
+	return b3
 end
