@@ -9,6 +9,9 @@
 
 	Changelog:
 
+	v1.0.2
+	+ Added Ezreal
+
 	v1.0.1
 	+ Added Vayne
 	+ Added Interrupter to champions
@@ -74,9 +77,9 @@ local OnDraws = {Awareness = nil, BaseUlt = nil, Champion = nil, TargetSelector 
 local OnRecalls = {Awareness = nil, BaseUlt = nil}
 local OnTicks = {Champion = nil, Utility = nil}
 local BaseUltC = {["Ashe"] = true, ["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true}
-local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = false, ["Jhin"] = false, ["Jinx"] = false, ["KaiSa"] = false, ["Kalista"] = false, ["KogMaw"] = false, ["Lucian"] = false, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = false, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
+local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["KaiSa"] = false, ["Kalista"] = false, ["KogMaw"] = false, ["Lucian"] = false, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = false, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
 local Item_HK = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM3, [ITEM_4] = HK_ITEM4, [ITEM_5] = HK_ITEM5, [ITEM_6] = HK_ITEM6, [ITEM_7] = HK_ITEM7}
-local Version = "1.01"; local LuaVer = "1.0.1"
+local Version = "1.02"; local LuaVer = "1.0.2"
 local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.version"
 local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.lua"
 
@@ -363,7 +366,8 @@ end
 
 function GoSuGeometry:GetDistanceSqr(pos1, pos2)
 	local pos2 = pos2 or myHero.pos
-	local dx = pos1.x - pos2.x; local dz = pos1.z - pos2.z
+	local dx = pos1.x - pos2.x
+	local dz = (pos1.z or pos1.y) - (pos2.z or pos2.y)
 	return dx * dx + dz * dz
 end
 
@@ -403,7 +407,7 @@ function GoSuGeometry:VectorIntersection(a1, b1, a2, b2)
 end
 
 function GoSuGeometry:VectorPointProjectionOnLineSegment(v1, v2, v)
-	local cx, cy, ax, ay, bx, by = v.x, (v.z or v.y), v1.x, (v1.z or v1.y), v2.x, (v2.z or v2.y)
+	local cx, cy, ax, ay, bx, by = v.x, v.z, v1.x, v1.z, v2.x, v2.z
 	local rL = ((cx - ax) * (bx - ax) + (cy - ay) * (by - ay)) / ((bx - ax) ^ 2 + (by - ay) ^ 2)
 	local pointLine = { x = ax + rL * (bx - ax), y = ay + rL * (by - ay) }
 	local rS = rL < 0 and 0 or (rL > 1 and 1 or rL)
@@ -953,7 +957,7 @@ function Ashe:__init()
 	self.AsheMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Ranger's Focus]", value = true, leftIcon = self.QIcon})
 	self.AsheMenu.Combo:MenuElement({id = "UseW", name = "Use W [Volley]", value = true, leftIcon = self.WIcon})
 	self.AsheMenu.Combo:MenuElement({id = "UseR", name = "Use R [Enchanted Crystal Arrow]", value = true, leftIcon = self.RIcon})
-	self.AsheMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 5000, step = 50})
+	self.AsheMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = self.WData.range, max = 5000, step = 50})
 	self.AsheMenu.Combo:MenuElement({id = "X", name = "Minimum Enemies: R", value = 1, min = 0, max = 5, step = 1})
 	self.AsheMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
 	self.AsheMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
@@ -962,7 +966,7 @@ function Ashe:__init()
 	self.AsheMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
 	self.AsheMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
 	self.AsheMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Enchanted Crystal Arrow]", value = true, leftIcon = self.RIcon})
-	self.AsheMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = 100, max = 5000, step = 50})
+	self.AsheMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = self.WData.range, max = 5000, step = 50})
 	self.AsheMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
 	self.AsheMenu.AntiGapcloser:MenuElement({id = "UseR", name = "Use R [Enchanted Crystal Arrow]", value = true, leftIcon = self.RIcon})
 	self.AsheMenu.AntiGapcloser:MenuElement({id = "Distance", name = "Distance: R", value = 100, min = 25, max = 500, step = 25})
@@ -1107,7 +1111,191 @@ end
 
 function Ashe:UseR(target, range)
 	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.RData.speed, range, self.RData.delay, self.RData.radius, nil, self.RData.collision)
-	if CastPos and HitChance >= (self.AsheMenu.HitChance.HCR:Value() / 100) then ControlCastSpell(HK_R, CastPos) end
+	if CastPos and HitChance >= (self.AsheMenu.HitChance.HCR:Value() / 100) then ControlCastSpell(HK_R, myHero.pos:Extended(CastPos, 1000)) end
+end
+
+--[[
+	┌─┐┌─┐┬─┐┌─┐┌─┐┬  
+	├┤ ┌─┘├┬┘├┤ ├─┤│  
+	└─┘└─┘┴└─└─┘┴ ┴┴─┘
+--]]
+
+class "Ezreal"
+
+function Ezreal:__init()
+	self.Target1 = nil; self.Target2 = nil
+	self.HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/c/c3/EzrealSquare.png"
+	self.QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/5/5a/Mystic_Shot.png"
+	self.WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/9e/Essence_Flux.png"
+	self.EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/fb/Arcane_Shift.png"
+	self.RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/02/Trueshot_Barrage.png"
+	self.QData = SpellData[myHero.charName][0]; self.WData = SpellData[myHero.charName][1]
+	self.EData = SpellData[myHero.charName][2]; self.RData = SpellData[myHero.charName][3]
+	self.EzrealMenu = MenuElement({type = MENU, id = "Ezreal", name = "[GoS-U] Ezreal", leftIcon = self.HeroIcon})
+	self.EzrealMenu:MenuElement({id = "Auto", name = "Auto", type = MENU})
+	self.EzrealMenu.Auto:MenuElement({id = "UseQ", name = "Use Q [Mystic Shot]", value = true, leftIcon = self.QIcon})
+	self.EzrealMenu.Auto:MenuElement({id = "UseW", name = "Use W [Essence Flux]", value = false, leftIcon = self.WIcon})
+	self.EzrealMenu.Auto:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	self.EzrealMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.EzrealMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Mystic Shot]", value = true, leftIcon = self.QIcon})
+	self.EzrealMenu.Combo:MenuElement({id = "UseW", name = "Use W [Essence Flux]", value = true, leftIcon = self.WIcon})
+	self.EzrealMenu.Combo:MenuElement({id = "UseE", name = "Use E [Arcane Shift]", value = true, leftIcon = self.EIcon})
+	self.EzrealMenu.Combo:MenuElement({id = "UseR", name = "Use R [Trueshot Barrage]", value = true, leftIcon = self.RIcon})
+	self.EzrealMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = self.QData.range, max = 5000, step = 50})
+	self.EzrealMenu.Combo:MenuElement({id = "X", name = "Minimum Enemies: R", value = 1, min = 0, max = 5, step = 1})
+	self.EzrealMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
+	self.EzrealMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.EzrealMenu.Harass:MenuElement({id = "UseQ", name = "Use Q [Mystic Shot]", value = true, leftIcon = self.QIcon})
+	self.EzrealMenu.Harass:MenuElement({id = "UseW", name = "Use W [Essence Flux]", value = true, leftIcon = self.WIcon})
+	self.EzrealMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	self.EzrealMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
+	self.EzrealMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Mystic Shot]", value = false, leftIcon = self.QIcon})
+	self.EzrealMenu.LaneClear:MenuElement({id = "MP", name = "Mana-Manager", value = 70, min = 0, max = 100, step = 5})
+	self.EzrealMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
+	self.EzrealMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Trueshot Barrage]", value = true, leftIcon = self.RIcon})
+	self.EzrealMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = self.QData.range, max = 5000, step = 50})
+	self.EzrealMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
+	self.EzrealMenu.AntiGapcloser:MenuElement({id = "UseE", name = "Use E [Arcane Shift]", value = true, leftIcon = self.EIcon})
+	self.EzrealMenu.AntiGapcloser:MenuElement({id = "CastE", name = "Cast Range: E", value = 275, min = 25, max = self.EData.range, step = 25})
+	self.EzrealMenu.AntiGapcloser:MenuElement({id = "Distance", name = "Distance: E", value = 200, min = 25, max = 500, step = 25})
+	self.EzrealMenu:MenuElement({id = "HitChance", name = "HitChance", type = MENU})
+	self.EzrealMenu.HitChance:MenuElement({id = "HCQ", name = "HitChance: Q", value = 40, min = 0, max = 100, step = 1})
+	self.EzrealMenu.HitChance:MenuElement({id = "HCW", name = "HitChance: W", value = 40, min = 0, max = 100, step = 1})
+	self.EzrealMenu.HitChance:MenuElement({id = "HCR", name = "HitChance: R", value = 50, min = 0, max = 100, step = 1})
+	self.EzrealMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
+	self.EzrealMenu.Drawings:MenuElement({id = "DrawQW", name = "Draw Q/W Range", value = true})
+	self.EzrealMenu.Drawings:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
+	self.EzrealMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
+	self.EzrealMenu.Drawings:MenuElement({id = "QWRng", name = "Q/W Range Color", color = DrawColor(192, 0, 250, 154)})
+	self.EzrealMenu.Drawings:MenuElement({id = "ERng", name = "E Range Color", color = DrawColor(192, 255, 140, 0)})
+	self.EzrealMenu.Drawings:MenuElement({id = "RRng", name = "R Range Color", color = DrawColor(192, 220, 20, 60)})
+	self.EzrealMenu:MenuElement({id = "blank", name = "GoS-U Reborn v"..LuaVer.."", type = SPACE})
+	self.EzrealMenu:MenuElement({id = "blank", name = "Author: Ark223", type = SPACE})
+	self.EzrealMenu:MenuElement({id = "blank", name = "Credits: gamsteron", type = SPACE})
+	OnDraws.Champion = function() self:Draw() end
+	OnTicks.Champion = function() self:Tick() end
+	_G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
+end
+
+function Ezreal:Tick()
+	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen()) then return end
+	self:Auto2()
+	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear() end
+	self.Range = myHero.range + myHero.boundingRadius * 1.5
+	self.Target1 = Module.TargetSelector:GetTarget(self.QData.range, nil)
+	self.Target2 = Module.TargetSelector:GetTarget(self.EzrealMenu.Combo.Distance:Value(), nil)
+	if self.Target2 == nil then return end
+	if GoSuManager:GetOrbwalkerMode() == "Combo" then Module.Utility:Tick(); self:Combo(self.Target1, self.Target2)
+	elseif GoSuManager:GetOrbwalkerMode() == "Harass" then self:Harass(self.Target1)
+	else self:Auto(self.Target1) end
+end
+
+function Ezreal:Draw()
+	if self.EzrealMenu.Drawings.DrawQW:Value() then DrawCircle(myHero.pos, self.QData.range, 1, self.EzrealMenu.Drawings.QWRng:Value()) end
+	if self.EzrealMenu.Drawings.DrawE:Value() then DrawCircle(myHero.pos, self.EData.range, 1, self.EzrealMenu.Drawings.ERng:Value()) end
+	if self.EzrealMenu.Drawings.DrawR:Value() then DrawCircle(myHero.pos, self.EzrealMenu.Combo.Distance:Value(), 1, self.EzrealMenu.Drawings.RRng:Value()) end
+end
+
+function Ezreal:OnPreAttack(args)
+	if GoSuManager:GetOrbwalkerMode() == "Combo" or GoSuManager:GetOrbwalkerMode() == "Harass" then
+		local target = Module.TargetSelector:GetTarget(self.Range, nil); args.Target = target
+	end
+end
+
+function Ezreal:Auto(target)
+	if target == nil and myHero.attackData.state == 2 then return end
+	if GoSuManager:GetPercentMana(myHero) > self.EzrealMenu.Auto.MP:Value() and GoSuManager:ValidTarget(target, self.QData.range) then
+		if self.EzrealMenu.Auto.UseW:Value() and ((self.EzrealMenu.Auto.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:IsReady(_W)) or (GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target, self.Range))) then
+			self:UseW(target)
+		elseif self.EzrealMenu.Auto.UseQ:Value() and GoSuManager:IsReady(_Q) then
+			self:UseQ(target)
+		end
+	end
+end
+
+function Ezreal:Auto2()
+	for i, enemy in pairs(GoSuManager:GetEnemyHeroes()) do
+		if enemy then
+			if GoSuManager:IsReady(_E) and self.EzrealMenu.AntiGapcloser.UseE:Value() and GoSuManager:ValidTarget(enemy, self.EzrealMenu.AntiGapcloser.Distance:Value()) then
+				ControlCastSpell(HK_E, myHero.pos:Extended(enemy.pos, -self.EzrealMenu.AntiGapcloser.CastE:Value()))
+			end
+			if GoSuManager:IsReady(_R) and self.EzrealMenu.KillSteal.UseR:Value() and GoSuManager:ValidTarget(enemy, self.EzrealMenu.KillSteal.Distance:Value()) then
+				local RDmg = GoSuManager:GetDamage(enemy, 3, 0)
+				if RDmg > enemy.health then
+					self:UseR(enemy, self.EzrealMenu.KillSteal.Distance:Value())
+				end
+			end
+		end
+	end
+end
+
+function Ezreal:Combo(target1, target2)
+	if target2 == nil and myHero.attackData.state == 2 then return end
+	if GoSuManager:ValidTarget(target1, self.QData.range) then
+		if self.EzrealMenu.Combo.UseW:Value() and ((self.EzrealMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:IsReady(_W)) or (GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target1, self.Range))) then
+			self:UseW(target1)
+		elseif self.EzrealMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) then
+			self:UseQ(target1)
+		end
+	end
+	if self.EzrealMenu.Combo.UseE:Value() and GoSuManager:IsReady(_E) and GoSuGeometry:GetDistance(myHero.pos, target1.pos) > self.Range then
+		ControlCastSpell(HK_E, myHero.pos:Extended(mousePos, self.EData.range))
+	end
+	if self.EzrealMenu.Combo.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target2, self.EzrealMenu.Combo.Distance:Value()) then
+		local enemies, count = GoSuManager:GetHeroesAround(myHero.pos, self.EzrealMenu.Combo.Distance:Value())
+		if GoSuManager:GetPercentHP(target2) < self.EzrealMenu.Combo.HP:Value() and count >= self.EzrealMenu.Combo.X:Value() then			
+			self:UseR(target2, self.EzrealMenu.Combo.Distance:Value())
+		end
+	end
+end
+
+function Ezreal:Harass(target)
+	if target == nil and myHero.attackData.state == 2 then return end
+	if GoSuManager:GetPercentMana(myHero) > self.EzrealMenu.Harass.MP:Value() and GoSuManager:ValidTarget(target, self.QData.range) then
+		if self.EzrealMenu.Harass.UseW:Value() and ((self.EzrealMenu.Harass.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:IsReady(_W)) or (GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target, self.Range))) then
+			self:UseW(target)
+		elseif self.EzrealMenu.Harass.UseQ:Value() and GoSuManager:IsReady(_Q) then
+			self:UseQ(target)
+		end
+	end
+end
+
+function Ezreal:LaneClear()
+	if GoSuManager:GetPercentMana(myHero) > self.EzrealMenu.LaneClear.MP:Value() and GoSuManager:IsReady(_Q) and self.EzrealMenu.LaneClear.UseQ:Value() then
+		local minions, count = GoSuManager:GetMinionsAround(myHero.pos, self.QData.range)
+		if count > 0 then
+			for i = 1, #minions do
+				local minion = minions[i]
+				for j = 1, #minions do
+					local target = minions[j]
+					local endPos = myHero.pos:Extended(target.pos, GoSuGeometry:GetDistance(myHero.pos, target.pos) - (target.boundingRadius / 2))
+					local pointSegment, pointLine, isOnSegment = GoSuGeometry:VectorPointProjectionOnLineSegment(myHero.pos, endPos, minion.pos)
+					if isOnSegment and GoSuGeometry:GetDistanceSqr(pointSegment, minion.pos) <= (self.QData.radius + minion.boundingRadius * 2) ^ 2 then return end
+					local QDmg = GoSuManager:GetDamage(target, 0, 0)
+					if QDmg > target.health then
+						if GoSuGeometry:GetDistanceSqr(myHero.pos, target.pos) <= self.Range ^ 2 and myHero.attackData.state == 3 or GoSuGeometry:GetDistanceSqr(myHero.pos, target.pos) > self.Range ^ 2 then
+							ControlCastSpell(HK_Q, target.pos)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Ezreal:UseQ(target)
+	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.QData.speed, self.QData.range, self.QData.delay, self.QData.radius, nil, self.QData.collision)
+	if CastPos and HitChance >= (self.EzrealMenu.HitChance.HCQ:Value() / 100) then ControlCastSpell(HK_Q, CastPos) end
+end
+
+function Ezreal:UseW(target)
+	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.WData.speed, self.WData.range, self.WData.delay, self.WData.radius, nil, self.WData.collision)
+	if CastPos and HitChance >= (self.EzrealMenu.HitChance.HCW:Value() / 100) then ControlCastSpell(HK_W, CastPos) end
+end
+
+function Ezreal:UseR(target, range)
+	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.RData.speed, range, self.RData.delay, self.RData.radius, nil, self.RData.collision)
+	if CastPos and HitChance >= (self.EzrealMenu.HitChance.HCR:Value() / 100) then ControlCastSpell(HK_R, myHero.pos:Extended(CastPos, 1000)) end
 end
 
 --[[
