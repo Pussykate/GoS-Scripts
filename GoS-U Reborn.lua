@@ -9,6 +9,10 @@
 
 	Changelog:
 
+	v1.0.3
+	+ Added Kog'Maw
+	+ Fixed Ashe's target selection on attack
+
 	v1.0.2
 	+ Added Ezreal
 
@@ -77,7 +81,7 @@ local OnDraws = {Awareness = nil, BaseUlt = nil, Champion = nil, TargetSelector 
 local OnRecalls = {Awareness = nil, BaseUlt = nil}
 local OnTicks = {Champion = nil, Utility = nil}
 local BaseUltC = {["Ashe"] = true, ["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true}
-local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["KaiSa"] = false, ["Kalista"] = false, ["KogMaw"] = false, ["Lucian"] = false, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = false, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
+local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["KaiSa"] = false, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = false, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = false, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
 local Item_HK = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM3, [ITEM_4] = HK_ITEM4, [ITEM_5] = HK_ITEM5, [ITEM_6] = HK_ITEM6, [ITEM_7] = HK_ITEM7}
 local Version = "1.02"; local LuaVer = "1.0.2"
 local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.version"
@@ -187,7 +191,7 @@ local DamageTable = {
 		{slot = 2, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, GoSuManager:GotBuff(target, "kalistaexpungemarker") > 0 and ((({20, 30, 40, 50, 60})[GoSuManager:GetCastLevel(myHero, _E)] + 0.6 * myHero.bonusDamage) + ((GoSuManager:GotBuff(target, "kalistaexpungemarker") - 1) * (({10, 14, 19, 25, 32})[GoSuManager:GetCastLevel(myHero, _E)] + ({0.2, 0.2375, 0.275, 0.3125, 0.35})[GoSuManager:GetCastLevel(myHero, _E)] * myHero.totalDamage)))) end},
 	},
 	["KogMaw"] = {
-		{slot = 2, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({60, 105, 150, 195, 240})[GoSuManager:GetCastLevel(myHero, _E)] + 0.5 * myHero.ap)) end},
+		{slot = 0, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({80, 130, 180, 230, 280})[GoSuManager:GetCastLevel(myHero, _Q)] + 0.5 * myHero.ap)) end},
 		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, ((({100, 140, 180})[GoSuManager:GetCastLevel(myHero, _R)] + 0.65 * myHero.bonusDamage + 0.25 * myHero.ap) * (GoSuManager:GetPercentHP(target) > 40 and 0.833 * (target.maxHealth / 100) or 1) * (GoSuManager:GetPercentHP(target) < 40 and 2 or 1))) end},
 	},
 	["Lucian"] = {
@@ -1026,20 +1030,21 @@ function Ashe:Draw()
 end
 
 function Ashe:OnPreAttack(args)
-	if (self.AsheMenu.Combo.UseQ:Value() and GoSuManager:GetOrbwalkerMode() == "Combo") or (GoSuManager:GetPercentMana(myHero) > self.AsheMenu.Harass.MP:Value() and self.AsheMenu.Harass.UseQ:Value() and GoSuManager:GetOrbwalkerMode() == "Harass") then
+	local Mode = GoSuManager:GetOrbwalkerMode()
+	if Mode == "Combo" or Mode == "Harass" then
 		local target = Module.TargetSelector:GetTarget(self.Range, nil); args.Target = target
-		if GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, AARange) and GoSuManager:GotBuff(myHero, "asheqcastready") == 4 then
-			ControlCastSpell(HK_Q)
+		if (self.AsheMenu.Combo.UseQ:Value() and Mode == "Combo") or (GoSuManager:GetPercentMana(myHero) > self.AsheMenu.Harass.MP:Value() and self.AsheMenu.Harass.UseQ:Value() and Mode == "Harass") then
+			if GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.Range) and GoSuManager:GotBuff(myHero, "asheqcastready") == 4 then
+				ControlCastSpell(HK_Q)
+			end
 		end
 	end
 end
 
 function Ashe:Auto(target)
-	if target == nil and myHero.attackData.state == 2 then return end
-	if self.AsheMenu.Auto.UseW:Value() then
-		if GoSuManager:GetPercentMana(myHero) > self.AsheMenu.Auto.MP:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target, self.WData.range) then
-			self:UseW(target)
-		end
+	if target == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.AsheMenu.Auto.MP:Value() then return end
+	if self.AsheMenu.Auto.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target, self.WData.range) then
+		self:UseW(target)
 	end
 end
 
@@ -1085,7 +1090,7 @@ function Ashe:Auto2()
 end
 
 function Ashe:Combo(target1, target2)
-	if target2 == nil and myHero.attackData.state == 2 then return end
+	if target2 == nil or myHero.attackData.state == 2 then return end
 	if self.AsheMenu.Combo.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target1, self.WData.range) then
 		self:UseW(target1)
 	end
@@ -1098,8 +1103,8 @@ function Ashe:Combo(target1, target2)
 end
 
 function Ashe:Harass(target)
-	if target == nil and myHero.attackData.state == 2 then return end
-	if GoSuManager:GetPercentMana(myHero) > self.AsheMenu.Harass.MP:Value() and self.AsheMenu.Harass.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target, self.WData.range) then
+	if target == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.AsheMenu.Harass.MP:Value() then return end
+	if self.AsheMenu.Harass.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target, self.WData.range) then
 		self:UseW(target)
 	end
 end
@@ -1180,7 +1185,7 @@ end
 function Ezreal:Tick()
 	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen()) then return end
 	self:Auto2()
-	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear() end
+	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear(); return end
 	self.Range = myHero.range + myHero.boundingRadius * 1.5
 	self.Target1 = Module.TargetSelector:GetTarget(self.QData.range, nil)
 	self.Target2 = Module.TargetSelector:GetTarget(self.EzrealMenu.Combo.Distance:Value(), nil)
@@ -1203,7 +1208,7 @@ function Ezreal:OnPreAttack(args)
 end
 
 function Ezreal:Auto(target)
-	if target == nil and myHero.attackData.state == 2 then return end
+	if target == nil or myHero.attackData.state == 2 then return end
 	if GoSuManager:GetPercentMana(myHero) > self.EzrealMenu.Auto.MP:Value() and GoSuManager:ValidTarget(target, self.QData.range) then
 		if self.EzrealMenu.Auto.UseW:Value() and ((self.EzrealMenu.Auto.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:IsReady(_W)) or (GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target, self.Range))) then
 			self:UseW(target)
@@ -1230,7 +1235,7 @@ function Ezreal:Auto2()
 end
 
 function Ezreal:Combo(target1, target2)
-	if target2 == nil and myHero.attackData.state == 2 then return end
+	if target2 == nil or myHero.attackData.state == 2 then return end
 	if GoSuManager:ValidTarget(target1, self.QData.range) then
 		if self.EzrealMenu.Combo.UseW:Value() and ((self.EzrealMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:IsReady(_W)) or (GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target1, self.Range))) then
 			self:UseW(target1)
@@ -1250,7 +1255,7 @@ function Ezreal:Combo(target1, target2)
 end
 
 function Ezreal:Harass(target)
-	if target == nil and myHero.attackData.state == 2 then return end
+	if target == nil or myHero.attackData.state == 2 then return end
 	if GoSuManager:GetPercentMana(myHero) > self.EzrealMenu.Harass.MP:Value() and GoSuManager:ValidTarget(target, self.QData.range) then
 		if self.EzrealMenu.Harass.UseW:Value() and ((self.EzrealMenu.Harass.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:IsReady(_W)) or (GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target, self.Range))) then
 			self:UseW(target)
@@ -1296,6 +1301,197 @@ end
 function Ezreal:UseR(target, range)
 	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.RData.speed, range, self.RData.delay, self.RData.radius, nil, self.RData.collision)
 	if CastPos and HitChance >= (self.EzrealMenu.HitChance.HCR:Value() / 100) then ControlCastSpell(HK_R, myHero.pos:Extended(CastPos, 1000)) end
+end
+
+--[[
+	┬┌─┌─┐┌─┐┌┬┐┌─┐┬ ┬
+	├┴┐│ ││ ┬│││├─┤│││
+	┴ ┴└─┘└─┘┴ ┴┴ ┴└┴┘
+--]]
+
+class "KogMaw"
+
+function KogMaw:__init()
+	self.Target1 = nil; self.Target2 = nil; self.Timer = 0
+	self.BonusRange = {130, 150, 170, 190, 210}
+	self.HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/4/45/Kog%27MawSquare.png"
+	self.QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/a9/Caustic_Spittle.png"
+	self.WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/ef/Bio-Arcane_Barrage.png"
+	self.EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/0c/Void_Ooze.png"
+	self.RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/b/bf/Living_Artillery.png"
+	self.QData = SpellData[myHero.charName][0]; self.EData = SpellData[myHero.charName][2]; self.RData = SpellData[myHero.charName][3]
+	self.KogMawMenu = MenuElement({type = MENU, id = "KogMaw", name = "[GoS-U] Kog'Maw", leftIcon = self.HeroIcon})
+	self.KogMawMenu:MenuElement({id = "Auto", name = "Auto", type = MENU})
+	self.KogMawMenu.Auto:MenuElement({id = "UseQ", name = "Use Q [Caustic Spittle]", value = true, leftIcon = self.QIcon})
+	self.KogMawMenu.Auto:MenuElement({id = "UseR", name = "Use R [Living Artillery]", key = string.byte("A"), leftIcon = self.RIcon})
+	self.KogMawMenu.Auto:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	self.KogMawMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.KogMawMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Caustic Spittle]", value = true, leftIcon = self.QIcon})
+	self.KogMawMenu.Combo:MenuElement({id = "UseW", name = "Use W [Bio-Arcane Barrage]", value = true, leftIcon = self.WIcon})
+	self.KogMawMenu.Combo:MenuElement({id = "UseE", name = "Use E [Void Ooze]", value = true, leftIcon = self.EIcon})
+	self.KogMawMenu.Combo:MenuElement({id = "UseR", name = "Use R [Living Artillery]", value = true, leftIcon = self.RIcon})
+	self.KogMawMenu.Combo:MenuElement({id = "MaxStacks", name = "Max Stacks While >%HP: R", value = 4, min = 1, max = 10, step = 1})
+	self.KogMawMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
+	self.KogMawMenu.Combo:MenuElement({id = "MP", name = "Mana-Manager: R", value = 10, min = 0, max = 100, step = 5})
+	self.KogMawMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.KogMawMenu.Harass:MenuElement({id = "UseQ", name = "Use Q [Caustic Spittle]", value = true, leftIcon = self.QIcon})
+	self.KogMawMenu.Harass:MenuElement({id = "UseW", name = "Use W [Bio-Arcane Barrage]", value = true, leftIcon = self.WIcon})
+	self.KogMawMenu.Harass:MenuElement({id = "UseE", name = "Use E [Void Ooze]", value = false, leftIcon = self.EIcon})
+	self.KogMawMenu.Harass:MenuElement({id = "UseR", name = "Use R [Living Artillery]", value = true, leftIcon = self.RIcon})
+	self.KogMawMenu.Harass:MenuElement({id = "MaxStacks", name = "Max Stacks While >%HP: R", value = 3, min = 1, max = 10, step = 1})
+	self.KogMawMenu.Harass:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
+	self.KogMawMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	self.KogMawMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
+	self.KogMawMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Caustic Spittle]", value = false, leftIcon = self.QIcon})
+	self.KogMawMenu.LaneClear:MenuElement({id = "MP", name = "Mana-Manager", value = 70, min = 0, max = 100, step = 5})
+	self.KogMawMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
+	self.KogMawMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Living Artillery]", value = true, leftIcon = self.RIcon})
+	self.KogMawMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
+	self.KogMawMenu.AntiGapcloser:MenuElement({id = "UseE", name = "Use E [Void Ooze]", value = true, leftIcon = self.EIcon})
+	self.KogMawMenu.AntiGapcloser:MenuElement({id = "Distance", name = "Distance: E", value = 400, min = 25, max = 500, step = 25})
+	self.KogMawMenu:MenuElement({id = "HitChance", name = "HitChance", type = MENU})
+	self.KogMawMenu.HitChance:MenuElement({id = "HCQ", name = "HitChance: Q", value = 40, min = 0, max = 100, step = 1})
+	self.KogMawMenu.HitChance:MenuElement({id = "HCE", name = "HitChance: E", value = 50, min = 0, max = 100, step = 1})
+	self.KogMawMenu.HitChance:MenuElement({id = "HCR", name = "HitChance: R", value = 40, min = 0, max = 100, step = 1})
+	self.KogMawMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
+	self.KogMawMenu.Drawings:MenuElement({id = "DrawQ", name = "Draw Q Range", value = true})
+	self.KogMawMenu.Drawings:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
+	self.KogMawMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
+	self.KogMawMenu.Drawings:MenuElement({id = "QRng", name = "Q Range Color", color = DrawColor(192, 0, 250, 154)})
+	self.KogMawMenu.Drawings:MenuElement({id = "ERng", name = "E Range Color", color = DrawColor(192, 255, 140, 0)})
+	self.KogMawMenu.Drawings:MenuElement({id = "RRng", name = "R Range Color", color = DrawColor(192, 220, 20, 60)})
+	self.KogMawMenu:MenuElement({id = "blank", name = "GoS-U Reborn v"..LuaVer.."", type = SPACE})
+	self.KogMawMenu:MenuElement({id = "blank", name = "Author: Ark223", type = SPACE})
+	self.KogMawMenu:MenuElement({id = "blank", name = "Credits: gamsteron", type = SPACE})
+	OnDraws.Champion = function() self:Draw() end
+	OnTicks.Champion = function() self:Tick() end
+	_G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
+end
+
+function KogMaw:Tick()
+	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen()) then return end
+	self.RRange = GoSuManager:GetCastRange(myHero, _R)
+	self:Auto2()
+	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear(); return end
+	self.AARange = myHero.range + myHero.boundingRadius * 1.5
+	self.Target1 = Module.TargetSelector:GetTarget(self.EData.range, nil)
+	self.Target2 = Module.TargetSelector:GetTarget(self.RRange, nil)
+	if self.Target2 == nil then return end
+	if GoSuManager:GetOrbwalkerMode() == "Combo" then Module.Utility:Tick(); self:Combo(self.Target1, self.Target2)
+	elseif GoSuManager:GetOrbwalkerMode() == "Harass" then self:Harass(self.Target1, self.Target2)
+	else self:Auto(self.Target1) end
+end
+
+function KogMaw:Draw()
+	if self.KogMawMenu.Drawings.DrawQ:Value() then DrawCircle(myHero.pos, self.QData.range, 1, self.KogMawMenu.Drawings.QRng:Value()) end
+	if self.KogMawMenu.Drawings.DrawE:Value() then DrawCircle(myHero.pos, self.EData.range, 1, self.KogMawMenu.Drawings.ERng:Value()) end
+	if self.KogMawMenu.Drawings.DrawR:Value() then DrawCircle(myHero.pos, GoSuManager:GetCastRange(myHero, _R), 1, self.KogMawMenu.Drawings.RRng:Value()) end
+end
+
+function KogMaw:OnPreAttack(args)
+	local Mode = GoSuManager:GetOrbwalkerMode()
+	if Mode == "Combo" or Mode == "Harass" then
+		local target = Module.TargetSelector:GetTarget(self.AARange, nil); args.Target = target
+		local target2 = Module.TargetSelector:GetTarget(self.AARange + self.BonusRange[GoSuManager:GetCastLevel(myHero, _W)], nil)
+		if GoSuManager:IsReady(_W) and target2 and GoSuManager:ValidTarget(target2) and ((self.KogMawMenu.Combo.UseW:Value() and Mode == "Combo") or (GoSuManager:GetPercentMana(myHero) > self.KogMawMenu.Harass.MP:Value() and self.KogMawMenu.Harass.UseW:Value() and Mode == "Harass")) then
+			ControlCastSpell(HK_W)
+		end
+	end
+end
+
+function KogMaw:Auto(target)
+	if target == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.KogMawMenu.Auto.MP:Value() then return end
+	if self.KogMawMenu.Auto.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.QData.range) then
+		self:UseQ(target)
+	end
+	if self.KogMawMenu.Auto.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target, self.RRange) then
+		if GameTimer() > self.Timer + 0.25 then self:UseR(target, self.RRange) end
+		self.Timer = GameTimer()
+	end
+end
+
+function KogMaw:Auto2()
+	for i, enemy in pairs(GoSuManager:GetEnemyHeroes()) do
+		if enemy then
+			if GoSuManager:IsReady(_E) and self.KogMawMenu.AntiGapcloser.UseE:Value() and GoSuManager:ValidTarget(enemy, self.KogMawMenu.AntiGapcloser.Distance:Value()) then
+				self:UseE(enemy)
+			end
+			if GoSuManager:IsReady(_R) and self.KogMawMenu.KillSteal.UseR:Value() and GoSuManager:ValidTarget(enemy, self.RRange) then
+				local RDmg = GoSuManager:GetDamage(enemy, 3, 0)
+				if RDmg > enemy.health then
+					self:UseR(enemy, self.RRange)
+				end
+			end
+		end
+	end
+end
+
+function KogMaw:Combo(target1, target2)
+	if target2 == nil or myHero.attackData.state == 2 then return end
+	if self.KogMawMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target1, self.QData.range) then
+		self:UseQ(target1)
+	end
+	if self.KogMawMenu.Combo.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target1, self.EData.range) then
+		self:UseE(target1)
+	end
+	if GoSuManager:GetPercentMana(myHero) > self.KogMawMenu.Combo.MP:Value() and self.KogMawMenu.Combo.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target2, self.RRange) then
+		if GoSuManager:GetPercentHP(target2) > self.KogMawMenu.Combo.HP:Value() and (GoSuManager:GotBuff(myHero, "kogmawlivingartillerycost") + 1) <= self.KogMawMenu.Combo.MaxStacks:Value() or GoSuManager:GetPercentHP(target2) <= self.KogMawMenu.Combo.HP:Value() then
+			self:UseR(target2, self.RRange)
+		end
+	end
+end
+
+function KogMaw:Harass(target1, target2)
+	if target2 == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.KogMawMenu.Harass.MP:Value() then return end
+	if self.KogMawMenu.Harass.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target1, self.QData.range) then
+		self:UseQ(target1)
+	end
+	if self.KogMawMenu.Harass.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target1, self.EData.range) then
+		self:UseE(target1)
+	end
+	if GoSuManager:GetPercentMana(myHero) > self.KogMawMenu.Harass.MP:Value() and self.KogMawMenu.Harass.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target2, self.RRange) then
+		if GoSuManager:GetPercentHP(target2) > self.KogMawMenu.Harass.HP:Value() and (GoSuManager:GotBuff(myHero, "kogmawlivingartillerycost") + 1) <= self.KogMawMenu.Harass.MaxStacks:Value() then
+			self:UseR(target2, self.RRange)
+		end
+	end
+end
+
+function KogMaw:LaneClear()
+	if GoSuManager:GetPercentMana(myHero) > self.KogMawMenu.LaneClear.MP:Value() and GoSuManager:IsReady(_Q) and self.KogMawMenu.LaneClear.UseQ:Value() then
+		local minions, count = GoSuManager:GetMinionsAround(myHero.pos, self.QData.range)
+		if count > 0 then
+			for i = 1, #minions do
+				local minion = minions[i]
+				for j = 1, #minions do
+					local target = minions[j]
+					local endPos = myHero.pos:Extended(target.pos, GoSuGeometry:GetDistance(myHero.pos, target.pos) - (target.boundingRadius / 2))
+					local pointSegment, pointLine, isOnSegment = GoSuGeometry:VectorPointProjectionOnLineSegment(myHero.pos, endPos, minion.pos)
+					if isOnSegment and GoSuGeometry:GetDistanceSqr(pointSegment, minion.pos) <= (self.QData.radius + minion.boundingRadius * 2) ^ 2 then return end
+					local QDmg = GoSuManager:GetDamage(target, 0, 0)
+					if QDmg > target.health then
+						if GoSuGeometry:GetDistanceSqr(myHero.pos, target.pos) <= self.AARange ^ 2 and myHero.attackData.state == 3 or GoSuGeometry:GetDistanceSqr(myHero.pos, target.pos) > self.AARange ^ 2 then
+							ControlCastSpell(HK_Q, target.pos)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function KogMaw:UseQ(target)
+	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.QData.speed, self.QData.range, self.QData.delay, self.QData.radius, nil, self.QData.collision)
+	if CastPos and HitChance >= (self.KogMawMenu.HitChance.HCQ:Value() / 100) then ControlCastSpell(HK_Q, CastPos) end
+end
+
+function KogMaw:UseE(target)
+	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.EData.speed, self.EData.range, self.EData.delay, self.EData.radius, nil, self.EData.collision)
+	if CastPos and HitChance >= (self.KogMawMenu.HitChance.HCE:Value() / 100) then ControlCastSpell(HK_E, CastPos) end
+end
+
+function KogMaw:UseR(target, range)
+	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.RData.speed, range, self.RData.delay, self.RData.radius, nil, self.RData.collision)
+	if CastPos and HitChance >= (self.KogMawMenu.HitChance.HCR:Value() / 100) then ControlCastSpell(HK_R, CastPos) end
 end
 
 --[[
@@ -1455,11 +1651,11 @@ end
 
 function Vayne:Combo(target)
 	if target == nil and myHero.attackData.state == 2 then return end
-	if self.VayneMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.Range + self.QData.range) and GoSuGeometry:GetDistance(target.pos, myHero.pos) > (myHero.range + myHero.boundingRadius) then
-		self:UseQ(target, self.VayneMenu.Combo.ModeQ:Value())
-	end
 	if self.VayneMenu.Combo.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target, self.EData.range) then
 		if self:IsOnLineToStun(target) then ControlCastSpell(HK_E, target.pos) end
+	end
+	if self.VayneMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.Range + self.QData.range) and GoSuGeometry:GetDistance(target.pos, myHero.pos) > (myHero.range + myHero.boundingRadius) then
+		self:UseQ(target, self.VayneMenu.Combo.ModeQ:Value())
 	end
 	if self.VayneMenu.Combo.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target, self.VayneMenu.Combo.Distance:Value()) then
 		local enemies, count = GoSuManager:GetHeroesAround(myHero.pos, self.VayneMenu.Combo.Distance:Value())
@@ -1471,11 +1667,11 @@ end
 
 function Vayne:Harass(target)
 	if target == nil and myHero.attackData.state == 2 then return end
-	if self.VayneMenu.Harass.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.Range + self.QData.range) and GoSuGeometry:GetDistance(target.pos, myHero.pos) > (myHero.range + myHero.boundingRadius) then
-		self:UseQ(target, self.VayneMenu.Harass.ModeQ:Value())
-	end
 	if self.VayneMenu.Harass.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target, self.EData.range) then
 		if self:IsOnLineToStun(target) then ControlCastSpell(HK_E, target.pos) end
+	end
+	if self.VayneMenu.Harass.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.Range + self.QData.range) and GoSuGeometry:GetDistance(target.pos, myHero.pos) > (myHero.range + myHero.boundingRadius) then
+		self:UseQ(target, self.VayneMenu.Harass.ModeQ:Value())
 	end
 end
 
