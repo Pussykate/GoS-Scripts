@@ -9,6 +9,10 @@
 
 	Changelog:
 
+	v1.0.4
+	+ Added tear stacking for Ezreal
+	+ Fixed items usage
+
 	v1.0.3
 	+ Added Kog'Maw
 	+ Fixed Ashe's target selection on attack
@@ -83,7 +87,7 @@ local OnTicks = {Champion = nil, Utility = nil}
 local BaseUltC = {["Ashe"] = true, ["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true}
 local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["KaiSa"] = false, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = false, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = false, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
 local Item_HK = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM3, [ITEM_4] = HK_ITEM4, [ITEM_5] = HK_ITEM5, [ITEM_6] = HK_ITEM6, [ITEM_7] = HK_ITEM7}
-local Version = "1.02"; local LuaVer = "1.0.2"
+local Version = "1.04"; local LuaVer = "1.0.4"
 local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.version"
 local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.lua"
 
@@ -114,9 +118,13 @@ function LoadUnits()
 end
 
 function DownloadFile(site, file)
-	local start = os.clock()
 	DownloadFileAsync(site, file, function() end)
-	repeat until os.clock() - start > 5 or FileExist(file)
+	while not FileExist(file) do end
+end
+
+function ReadFile(file)
+	local txt = io.open(file, "r"); local result = txt:read()
+	txt:close(); return result
 end
 
 function AutoUpdate()
@@ -124,7 +132,7 @@ function AutoUpdate()
 		DownloadFile("https://github.com/Ark223/GoS-Scripts/blob/master/PremiumPrediction.lua", COMMON_PATH .. "PremiumPrediction.lua")
 	end
 	DownloadFile(VerSite, SCRIPT_PATH .. "GoS-U Reborn.version")
-	if tonumber(ReadFile(SCRIPT_PATH, "GoS-U Reborn.version")) > tonumber(Version) then
+	if tonumber(ReadFile(SCRIPT_PATH .. "GoS-U Reborn.version")) > tonumber(Version) then
 		print("Update found. Downloading...")
 		DownloadFile(LuaSite, SCRIPT_PATH .. "GoS-U Reborn.lua")
 		print("Successfully updated. Reload!")
@@ -495,7 +503,7 @@ end
 function GoSuManager:GetHeroesAround(pos, range, mode)
 	local range = range or MathHuge; local t = {}; local n = 0
 	for i = 1, (mode == "allies" and #Allies or #Enemies) do
-		local unit = Allies[i]
+		local unit = mode == "allies" and Allies[i] or Enemies[i]
 		if unit and not unit.dead and GoSuGeometry:GetDistance(pos, unit.pos) <= range then
 			TableInsert(t, unit); n = n + 1
 		end
@@ -531,6 +539,7 @@ function GoSuManager:GetOrbwalkerMode()
 	else
 		return GOS.GetMode()
 	end
+	return ""
 end
 
 function GoSuManager:GetPercentHP(unit)
@@ -746,7 +755,6 @@ class "GoSuUtility"
 function GoSuUtility:__init()
 	self.MSIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/0a/Mercurial_Scimitar_item.png"
 	self.QSIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/f9/Quicksilver_Sash_item.png"
-	self.STIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/2/2b/Tear_of_the_Goddess_item.png"
 	self.BCIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/4/44/Bilgewater_Cutlass_item.png"
 	self.BOTRKIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/2/2f/Blade_of_the_Ruined_King_item.png"
 	self.HGIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/6/64/Hextech_Gunblade_item.png"
@@ -757,12 +765,10 @@ function GoSuUtility:__init()
 	self.UtilityMenu.Items.Defensive:MenuElement({id = "UseMS", name = "Use Mercurial Scimitar", value = true, leftIcon = self.MSIcon})
 	self.UtilityMenu.Items.Defensive:MenuElement({id = "UseQS", name = "Use Quicksilver Sash", value = true, leftIcon = self.QSIcon})
 	self.UtilityMenu.Items:MenuElement({id = "Offensive", name = "Offensive Items", type = MENU})
-	self.UtilityMenu.Items.Offensive:MenuElement({id = "Stack", name = "Stack Tear", value = true, leftIcon = self.STIcon})
 	self.UtilityMenu.Items.Offensive:MenuElement({id = "UseBC", name = "Use Bilgewater Cutlass", value = true, leftIcon = self.BCIcon})
 	self.UtilityMenu.Items.Offensive:MenuElement({id = "UseBOTRK", name = "Use BOTRK", value = true, leftIcon = self.BOTRKIcon})
 	self.UtilityMenu.Items.Offensive:MenuElement({id = "UseHG", name = "Use Hextech Gunblade", value = true, leftIcon = self.HGIcon})
-	self.UtilityMenu.Items.Offensive:MenuElement({id = "ST", name = "Mana [%] To Stack Tear", value = 75, min = 0, max = 100, step = 5})
-	self.UtilityMenu.Items.Offensive:MenuElement({id = "OI", name = "Enemy HP [%] To Use Items", value = 35, min = 0, max = 100, step = 5})
+	self.UtilityMenu.Items.Offensive:MenuElement({id = "HE", name = "Enemy %HP To Use Items", value = 75, min = 0, max = 100, step = 5})
 	self.UtilityMenu:MenuElement({id = "SS", name = "Summoner Spells", type = MENU})
 	self.UtilityMenu.SS:MenuElement({id = "UseHeal", name = "Use Heal", value = true, leftIcon = self.HealIcon})
 	self.UtilityMenu.SS:MenuElement({id = "UseSave", name = "Save Ally Using Heal", value = true, leftIcon = self.HealIcon})
@@ -772,48 +778,49 @@ function GoSuUtility:__init()
 end
 
 function GoSuUtility:Tick()
-	local enemies, countEnemies = GoSuManager:GetHeroesAround(myHero.pos, 1500, "enemies")
-	if countEnemies > 0 then
-		if self.UtilityMenu.SS.UseHeal:Value() then
-			if myHero.alive and myHero.health > 0 and GoSuManager:GetPercentHP(myHero) < self.UtilityMenu.SS.HealMe:Value() then
-				if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and GoSuManager:IsReady(SUMMONER_1) then
-					ControlCastSpell(HK_SUMMONER_1)
-				elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" and GoSuManager:IsReady(SUMMONER_2) then
-					ControlCastSpell(HK_SUMMONER_2)
-				end
+	if self.UtilityMenu.SS.UseHeal:Value() then
+		if myHero.alive and myHero.health > 0 and GoSuManager:GetPercentHP(myHero) < self.UtilityMenu.SS.HealMe:Value() then
+			if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and GoSuManager:IsReady(SUMMONER_1) then
+				ControlCastSpell(HK_SUMMONER_1)
+			elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" and GoSuManager:IsReady(SUMMONER_2) then
+				ControlCastSpell(HK_SUMMONER_2)
 			end
-			local allies, countAllies = GoSuManager:GetHeroesAround(myHero.pos, 850, "allies")
-			if countAllies > 0 then
-				for i, ally in pairs(allies) do
-					if GoSuManager:ValidTarget(ally, 850) then
-						if ally.alive and ally.health > 0 and GoSuManager:GetPercentHP(ally) < self.UtilityMenu.SS.HealAlly:Value() then
-							if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and GoSuManager:IsReady(SUMMONER_1) then
-								ControlCastSpell(HK_SUMMONER_1, ally.pos)
-							elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" and GoSuManager:IsReady(SUMMONER_2) then
-								ControlCastSpell(HK_SUMMONER_2, ally.pos)
-							end
+		end
+		local allies, countAllies = GoSuManager:GetHeroesAround(myHero.pos, 850, "allies")
+		if countAllies > 0 then
+			for i, ally in pairs(allies) do
+				if GoSuManager:ValidTarget(ally, 850) then
+					if ally.alive and ally.health > 0 and GoSuManager:GetPercentHP(ally) < self.UtilityMenu.SS.HealAlly:Value() then
+						if myHero:GetSpellData(SUMMONER_1).name == "SummonerHeal" and GoSuManager:IsReady(SUMMONER_1) then
+							ControlCastSpell(HK_SUMMONER_1, ally.pos)
+						elseif myHero:GetSpellData(SUMMONER_2).name == "SummonerHeal" and GoSuManager:IsReady(SUMMONER_2) then
+							ControlCastSpell(HK_SUMMONER_2, ally.pos)
 						end
 					end
 				end
 			end
 		end
-		local target = Module.TargetSelector:GetTarget(700, nil)
+	end
+	local target = Module.TargetSelector:GetTarget(700, nil)
+	if target then
 		local itemSlots = {[1] = 3144, [2] = 3153, [3] = 3139, [4] = 3140}
-		if GoSuManager:ValidTarget(target, 550) then
-			for i = 1, 2, 1 do
-				if GoSuManager:GetItemSlot(myHero, itemSlots[i]) > 0 then
-					if i == 1 and self.UtilityMenu.Items.Offensive.UseBC:Value() or self.UtilityMenu.Items.Offensive.UseBOTRK:Value() then
-						if GoSuManager:GetSpellCooldown(myHero, GoSuManager:GetItemSlot(myHero, itemSlots[i])) == 0 then
-							ControlCastSpell(Item_HK[GoSuManager:GetItemSlot(myHero, itemSlots[i])], target.pos)
+		if GoSuManager:GetPercentHP(target) <= self.UtilityMenu.Items.Offensive.HE:Value() then
+			if GoSuManager:ValidTarget(target, 550) then
+				for i = 1, 2, 1 do
+					if GoSuManager:GetItemSlot(myHero, itemSlots[i]) > 0 then
+						if i == 1 and self.UtilityMenu.Items.Offensive.UseBC:Value() or self.UtilityMenu.Items.Offensive.UseBOTRK:Value() then
+							if GoSuManager:GetSpellCooldown(myHero, GoSuManager:GetItemSlot(myHero, itemSlots[i])) == 0 then
+								ControlCastSpell(Item_HK[GoSuManager:GetItemSlot(myHero, itemSlots[i])], target.pos)
+							end
 						end
 					end
 				end
-			end
-		elseif GoSuManager:ValidTarget(target, 700) then
-			if self.UtilityMenu.Items.Offensive.UseHG:Value() then
-				if GoSuManager:GetItemSlot(myHero, 3146) > 0 then
-					if GoSuManager:GetSpellCooldown(myHero, GoSuManager:GetItemSlot(myHero, 3146)) == 0 then
-						ControlCastSpell(Item_HK[GoSuManager:GetItemSlot(myHero, 3146)], target.pos)
+			elseif GoSuManager:ValidTarget(target, 700) then
+				if self.UtilityMenu.Items.Offensive.UseHG:Value() then
+					if GoSuManager:GetItemSlot(myHero, 3146) > 0 then
+						if GoSuManager:GetSpellCooldown(myHero, GoSuManager:GetItemSlot(myHero, 3146)) == 0 then
+							ControlCastSpell(Item_HK[GoSuManager:GetItemSlot(myHero, 3146)], target.pos)
+						end
 					end
 				end
 			end
@@ -826,14 +833,6 @@ function GoSuUtility:Tick()
 							ControlCastSpell(Item_HK[GoSuManager:GetItemSlot(myHero, itemSlots[i])], myHero.pos)
 						end
 					end
-				end
-			end
-		end
-	else
-		if self.UtilityMenu.Items.Offensive.Stack:Value() then
-			if GoSuManager:GetItemSlot(myHero, 3070) > 0 then
-				if GoSuManager:GetPercentMana(myHero) <= self.UtilityMenu.Items.Offensive.ST:Value() then
-					ControlCastSpell(HK_Q)
 				end
 			end
 		end
@@ -1134,6 +1133,7 @@ function Ezreal:__init()
 	self.WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/9e/Essence_Flux.png"
 	self.EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/fb/Arcane_Shift.png"
 	self.RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/02/Trueshot_Barrage.png"
+	self.STIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/2/2b/Tear_of_the_Goddess_item.png"
 	self.QData = SpellData[myHero.charName][0]; self.WData = SpellData[myHero.charName][1]
 	self.EData = SpellData[myHero.charName][2]; self.RData = SpellData[myHero.charName][3]
 	self.EzrealMenu = MenuElement({type = MENU, id = "Ezreal", name = "[GoS-U] Ezreal", leftIcon = self.HeroIcon})
@@ -1174,6 +1174,9 @@ function Ezreal:__init()
 	self.EzrealMenu.Drawings:MenuElement({id = "QWRng", name = "Q/W Range Color", color = DrawColor(192, 0, 250, 154)})
 	self.EzrealMenu.Drawings:MenuElement({id = "ERng", name = "E Range Color", color = DrawColor(192, 255, 140, 0)})
 	self.EzrealMenu.Drawings:MenuElement({id = "RRng", name = "R Range Color", color = DrawColor(192, 220, 20, 60)})
+	self.EzrealMenu:MenuElement({id = "Misc", name = "Misc", type = MENU})
+	self.EzrealMenu.Misc:MenuElement({id = "StackTear", name = "Stack Tear", value = false, leftIcon = self.STIcon})
+	self.EzrealMenu.Misc:MenuElement({id = "STMana", name = "Mana-Manager: Tear", value = 75, min = 0, max = 100, step = 5})
 	self.EzrealMenu:MenuElement({id = "blank", name = "GoS-U Reborn v"..LuaVer.."", type = SPACE})
 	self.EzrealMenu:MenuElement({id = "blank", name = "Author: Ark223", type = SPACE})
 	self.EzrealMenu:MenuElement({id = "blank", name = "Credits: gamsteron", type = SPACE})
@@ -1230,6 +1233,12 @@ function Ezreal:Auto2()
 					self:UseR(enemy, self.EzrealMenu.KillSteal.Distance:Value())
 				end
 			end
+		end
+	end
+	if GoSuManager:GetOrbwalkerMode() == "" and self.EzrealMenu.Misc.StackTear:Value() then
+		local enemies, count = GoSuManager:GetHeroesAround(myHero.pos, 3000, "enemies")
+		if count == 0 and GoSuManager:GetItemSlot(myHero, 3070) > 0 and GoSuManager:GetPercentMana(myHero) >= self.EzrealMenu.Misc.STMana:Value() then
+			ControlCastSpell(HK_Q)
 		end
 	end
 end
