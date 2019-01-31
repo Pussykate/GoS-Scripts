@@ -1834,6 +1834,7 @@ function Sivir:__init()
 	OnDraws.Champion = function() self:Draw() end
 	OnTicks.Champion = function() self:Tick() end
 	_G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
+	_G.SDK.Orbwalker:OnPostAttackTick(function(...) self:OnPostAttackTick(...) end)
 end
 
 function Sivir:Tick()
@@ -1853,12 +1854,14 @@ function Sivir:Draw()
 end
 
 function Sivir:OnPreAttack(args)
-	local Mode = GoSuManager:GetOrbwalkerMode()
-	if Mode == "Combo" or Mode == "Harass" then
+	if GoSuManager:GetOrbwalkerMode() == "Combo" or GoSuManager:GetOrbwalkerMode() == "Harass" then
 		local target = Module.TargetSelector:GetTarget(self.Range, nil); args.Target = target
-		if (self.SivirMenu.Combo.UseW:Value() and Mode == "Combo") or (GoSuManager:GetPercentMana(myHero) > self.SivirMenu.Harass.MP:Value() and self.SivirMenu.Harass.UseW:Value() and Mode == "Harass") then
-			if GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target, self.Range) then ControlCastSpell(HK_W) end
-		end
+	end
+end
+
+function Sivir:OnPostAttackTick(args)
+	if (self.SivirMenu.Combo.UseW:Value() and GoSuManager:GetOrbwalkerMode() == "Combo") or (GoSuManager:GetPercentMana(myHero) > self.SivirMenu.Harass.MP:Value() and self.SivirMenu.Harass.UseW:Value() and GoSuManager:GetOrbwalkerMode() == "Harass") then
+		if GoSuManager:IsReady(_W) then ControlCastSpell(HK_W) end
 	end
 end
 
