@@ -1861,7 +1861,7 @@ end
 
 function Sivir:OnPostAttackTick(args)
 	if (self.SivirMenu.Combo.UseW:Value() and GoSuManager:GetOrbwalkerMode() == "Combo") or (GoSuManager:GetPercentMana(myHero) > self.SivirMenu.Harass.MP:Value() and self.SivirMenu.Harass.UseW:Value() and GoSuManager:GetOrbwalkerMode() == "Harass") then
-		if GoSuManager:IsReady(_W) then ControlCastSpell(HK_W) end
+		if GoSuManager:IsReady(_W) then ControlCastSpell(HK_W); DelayAction(function() _G.SDK.Orbwalker:__OnAutoAttackReset() end, 0.05) end
 	end
 end
 
