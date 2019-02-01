@@ -149,12 +149,9 @@ function AutoUpdate()
 	end
 	DownloadFile(VerSite, SCRIPT_PATH .. "GoS-U Reborn.version")
 	if tonumber(ReadFile(SCRIPT_PATH .. "GoS-U Reborn.version")) > tonumber(Version) then
-		print("Update found. Downloading...")
+		print("GoS-U Reborn: Downloading update...")
 		DownloadFile(LuaSite, SCRIPT_PATH .. "GoS-U Reborn.lua")
-		print("Successfully updated. Reload!")
-		DeleteFile(SCRIPT_PATH .. "GoS-U Reborn.version", function() end)
-	else
-		DeleteFile(SCRIPT_PATH .. "GoS-U Reborn.version", function() end)
+		print("GoS-U Reborn: Successfully updated. 2xF6!")
 	end
 end
 
