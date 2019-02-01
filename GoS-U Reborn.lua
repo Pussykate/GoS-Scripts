@@ -1964,7 +1964,7 @@ function Sivir:OnProcessSpell()
 		if Detected.origin ~= "missile" then
 			local type = Detected.type
 			if type == "targeted" then
-				if GoSuManager:GetHeroByHandle(spell.target) == myHero then ControlCastSpell(HK_E) end
+				if spell.target == myHero.handle then ControlCastSpell(HK_E) end
 			else
 				local startPos = Vector(spell.startPos); local placementPos = Vector(spell.placementPos); local unitPos = unit.pos
 				local radius = Detected.radius; local range = Detected.range; local col = Detected.collision; local type = Detected.type
