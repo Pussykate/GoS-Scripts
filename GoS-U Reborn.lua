@@ -2112,7 +2112,7 @@ function Vayne:Auto2()
 						local spell = enemy.activeSpell
 						if ChanellingSpells[spell.name] and self.VayneMenu.Interrupter.CSpells[spell.name] and self.VayneMenu.Interrupter.CSpells[spell.name]["Detect"..spell.name]:Value() then
 							if self.VayneMenu.Interrupter.CSpells[spell.name]["Danger"..spell.name]:Value() >= self.VayneMenu.Interrupter.Dng:Value() then
-								self:UseE(enemy, self.VayneMenu.Interrupter.Distance:Value())
+								ControlCastSpell(HK_E, enemy.pos)
 							end
 						end
 					end
@@ -2120,7 +2120,7 @@ function Vayne:Auto2()
 				if self.VayneMenu.Interrupter.UseEDash:Value() then
 					if enemy.pathing.isDashing and enemy.pathing.dashSpeed > 500 then
 						if GoSuManager:GetDistance(enemy.pos, myHero.pos) > GoSuManager:GetDistance(enemy.pathing.endPos, myHero.pos) then
-							self:UseE(enemy, self.VayneMenu.Interrupter.Distance:Value())
+							ControlCastSpell(HK_E, enemy.pos)
 						end
 					end
 				end
