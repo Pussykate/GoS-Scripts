@@ -429,7 +429,7 @@ local DamageTable = {
 	},
 	["KogMaw"] = {
 		{slot = 0, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({80, 130, 180, 230, 280})[GoSuManager:GetCastLevel(myHero, _Q)] + 0.5 * myHero.ap)) end},
-		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, ((({100, 140, 180})[GoSuManager:GetCastLevel(myHero, _R)] + 0.65 * myHero.bonusDamage + 0.25 * myHero.ap) * (GoSuManager:GetPercentHP(target) > 40 and 0.833 * (target.maxHealth / 100) or 1) * (GoSuManager:GetPercentHP(target) < 40 and 2 or 1))) end},
+		{slot = 3, state = 0, damage = function(target)	local base = ({100, 140, 180})[GoSuManager:GetCastLevel(myHero, _R)] + 0.65 * myHero.bonusDamage + 0.25 * myHero.ap; local multiplyer = MathFloor(100 - (target.health * 100 / target.maxHealth)); return GoSuManager:CalcMagicalDamage(myHero, target, multiplyer > 60 and base * 2 or base * (1 + (multiplyer * 0.00833))) end},
 	},
 	["Lucian"] = {
 		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({400, 875, 1500})[GoSuManager:GetCastLevel(myHero, _R)] + ({5, 6.25, 7.5})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.totalDamage + ({2, 2.5, 3})[GoSuManager:GetCastLevel(myHero, _R)] * myHero.ap)) end},
@@ -1899,7 +1899,7 @@ end
 function Lucian:Combo(target)
 	if target == nil or myHero.attackData.state == 2 then return end
 	if self.LucianMenu.Combo.UseExQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.QData.range2) then
-		self:UseExQ(target)
+		if GoSuGeometry:GetDistance(myHero.pos, target.pos) > self.QData.range then self:UseExQ(target) end
 	end
 	if self.LucianMenu.Combo.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target, self.Range + self.EData.range) then
 		if GoSuGeometry:GetDistance(myHero.pos, target.pos) > (self.Range + target.boundingRadius) then self:UseE(target, 3) end
@@ -1909,7 +1909,7 @@ end
 function Lucian:Harass(target)
 	if target == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.LucianMenu.Harass.MP:Value() then return end
 	if self.LucianMenu.Harass.UseExQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.QData.range2) then
-		self:UseExQ(target)
+		if GoSuGeometry:GetDistance(myHero.pos, target.pos) > self.QData.range then self:UseExQ(target) end
 	end
 	if self.LucianMenu.Harass.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target, self.Range + self.EData.range) then
 		if GoSuGeometry:GetDistance(myHero.pos, target.pos) > (self.Range + target.boundingRadius) then self:UseE(target, self.LucianMenu.Harass.ModeE:Value()) end
