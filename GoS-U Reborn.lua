@@ -1927,7 +1927,7 @@ function Sivir:UseE(i, s)
 	if s.startTime + travelTime > GameTimer() then
 		local Col = GoSuGeometry:VectorPointProjectionOnLineSegment(startPos, endPos, myHero.pos)
 		if s.type == "circular" and GoSuGeometry:GetDistanceSqr(myHero.pos, endPos) < (s.radius + myHero.boundingRadius) ^ 2 or GoSuGeometry:GetDistanceSqr(myHero.pos, Col) < (s.radius + myHero.boundingRadius * 1.25) ^ 2 then
-			local t = 0.29; t = s.speed ~= MathHuge and GoSuGeometry:CalculateCollisionTime(startPos, endPos, myHero.pos, s.startTime, s.speed, s.delay, s.origin)
+			local t = s.speed ~= MathHuge and GoSuGeometry:CalculateCollisionTime(startPos, endPos, myHero.pos, s.startTime, s.speed, s.delay, s.origin) or 0.29
 			if t < 0.3 then ControlCastSpell(HK_E) end
 		end
 	else TableRemove(self.DetectedSpells, i) end
