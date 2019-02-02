@@ -8,6 +8,9 @@
 
 	Changelog:
 
+	v1.0.6
+	+ Added Lucian
+
 	v1.0.5
 	+ Added Sivir
 	+ Added R to KogMaw's LaneClear
@@ -91,9 +94,9 @@ local OnDraws = {Awareness = nil, BaseUlt = nil, Champion = nil, TargetSelector 
 local OnRecalls = {Awareness = nil, BaseUlt = nil}
 local OnTicks = {Champion = nil, Utility = nil}
 local BaseUltC = {["Ashe"] = true, ["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true}
-local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["KaiSa"] = false, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = false, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = true, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
+local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["KaiSa"] = false, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = true, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = true, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
 local Item_HK = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6, [ITEM_7] = HK_ITEM_7}
-local Version = "1.05"; local LuaVer = "1.0.5"
+local Version = "1.06"; local LuaVer = "1.0.6"
 local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.version"
 local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.lua"
 
@@ -498,8 +501,9 @@ local SpellData = {
 		[3] = {speed = MathHuge, range = 1300, delay = 1.1, radius = 200, collision = false},
 	},
 	["Lucian"] = {
-		[0] = {speed = MathHuge, range = 500, range2 = 900, delay = 0.35, radius = 65, collision = false},
-		[1] = {speed = 1600, range = 900, delay = 0.25, radius = 80, collision = true},
+		[0] = {speed = MathHuge, range = 500, range2 = 900, delay = 0.35, radius = 45, collision = false},
+		[1] = {speed = 1600, range = 900, delay = 0.25, radius = 40, collision = true},
+		[2] = {range = 425},
 		[3] = {speed = 2800, range = 1200, delay = 0, radius = 110, collision = true},
 	},
 	["MissFortune"] = {
@@ -567,8 +571,8 @@ function GoSuGeometry:CalculateEndPos(startPos, placementPos, unitPos, range, ra
 end
 
 function GoSuGeometry:CircleCircleIntersection(c1, c2, r1, r2)
-	local d = GetDistance(c1, c2); local a = (r1 * r1 - r2 * r2 + d * d ) / (2 * d); local h = MathSqrt(r1 * r1 - a * a)
-	local dir = (Vector(c2) - Vector(c1)):Normalized(); local pa = Vector(c1) + a * dir
+	local d = self:GetDistance(c1, c2); local a = (r1 * r1 - r2 * r2 + d * d) / (2 * d); local h = MathSqrt(r1 * r1 - a * a)
+	local dir = Vector(c2 - c1):Normalized(); local pa = Vector(c1) + a * dir
 	local s1 = pa + h * dir:Perpendicular(); local s2 = pa - h * dir:Perpendicular()
 	return s1, s2
 end
@@ -1446,7 +1450,7 @@ end
 function Ezreal:Tick()
 	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead) then return end
 	self:Auto2()
-	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear(); return end
+	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear() end
 	self.Range = myHero.range + myHero.boundingRadius * 1.5
 	self.Target1 = Module.TargetSelector:GetTarget(self.QData.range, nil)
 	self.Target2 = Module.TargetSelector:GetTarget(self.EzrealMenu.Combo.Distance:Value(), nil)
@@ -1642,7 +1646,7 @@ function KogMaw:Tick()
 	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead) then return end
 	self.RRange = GoSuManager:GetCastRange(myHero, _R)
 	self:Auto2()
-	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear(); return end
+	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear() end
 	self.AARange = myHero.range + myHero.boundingRadius * 1.5
 	self.Target1 = Module.TargetSelector:GetTarget(self.EData.range, nil)
 	self.Target2 = Module.TargetSelector:GetTarget(self.RRange, nil)
@@ -1773,6 +1777,204 @@ function KogMaw:UseR(target, range)
 end
 
 --[[
+	┬  ┬ ┬┌─┐┬┌─┐┌┐┌
+	│  │ ││  │├─┤│││
+	┴─┘└─┘└─┘┴┴ ┴┘└┘
+--]]
+
+class "Lucian"
+
+function Lucian:__init()
+	self.Target1 = nil; self.Target2 = nil
+	self.HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/1/1e/LucianSquare.png"
+	self.QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/2/2d/Piercing_Light.png"
+	self.WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/6/60/Ardent_Blaze.png"
+	self.EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/f1/Relentless_Pursuit.png"
+	self.RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/6/6e/The_Culling.png"
+	self.QData = SpellData[myHero.charName][0]; self.WData = SpellData[myHero.charName][1]
+	self.EData = SpellData[myHero.charName][2]; self.RData = SpellData[myHero.charName][3]
+	self.LucianMenu = MenuElement({type = MENU, id = "Lucian", name = "[GoS-U] Lucian", leftIcon = self.HeroIcon})
+	self.LucianMenu:MenuElement({id = "Auto", name = "Auto", type = MENU})
+	self.LucianMenu.Auto:MenuElement({id = "UseExQ", name = "Use Extended Q", value = true, leftIcon = self.QIcon})
+	self.LucianMenu.Auto:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	self.LucianMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.LucianMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Piercing Light]", value = true, leftIcon = self.QIcon})
+	self.LucianMenu.Combo:MenuElement({id = "UseExQ", name = "Use Extended Q", value = true, leftIcon = self.QIcon})
+	self.LucianMenu.Combo:MenuElement({id = "UseW", name = "Use W [Ardent Blaze]", value = true, leftIcon = self.WIcon})
+	self.LucianMenu.Combo:MenuElement({id = "UseE", name = "Use E [Relentless Pursuit]", value = true, leftIcon = self.EIcon})
+	self.LucianMenu.Combo:MenuElement({id = "ModeE", name = "Cast Mode: E", drop = {"Mouse", "Smart"}, value = 2})
+	self.LucianMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.LucianMenu.Harass:MenuElement({id = "UseQ", name = "Use Q [Piercing Light]", value = true, leftIcon = self.QIcon})
+	self.LucianMenu.Harass:MenuElement({id = "UseExQ", name = "Use Extended Q", value = true, leftIcon = self.QIcon})
+	self.LucianMenu.Harass:MenuElement({id = "UseW", name = "Use W [Ardent Blaze]", value = true, leftIcon = self.WIcon})
+	self.LucianMenu.Harass:MenuElement({id = "UseE", name = "Use E [Relentless Pursuit]", value = false, leftIcon = self.EIcon})
+	self.LucianMenu.Harass:MenuElement({id = "ModeE", name = "Cast Mode: E", drop = {"Mouse", "Smart"}, value = 1})
+	self.LucianMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	self.LucianMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
+	self.LucianMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Piercing Light]", value = false, leftIcon = self.QIcon})
+	self.LucianMenu.LaneClear:MenuElement({id = "MMH", name = "Minimum Minions To Hit", value = 4, min = 1, max = 10, step = 1})
+	self.LucianMenu.LaneClear:MenuElement({id = "MP", name = "Mana-Manager", value = 70, min = 0, max = 100, step = 5})
+	self.LucianMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
+	self.LucianMenu.AntiGapcloser:MenuElement({id = "UseE", name = "Use E [Relentless Pursuit]", value = true, leftIcon = self.EIcon})
+	self.LucianMenu.AntiGapcloser:MenuElement({id = "CastE", name = "Cast Range: E", value = 325, min = 25, max = self.EData.range, step = 25})
+	self.LucianMenu.AntiGapcloser:MenuElement({id = "Distance", name = "Distance: E", value = 100, min = 25, max = 500, step = 25})
+	self.LucianMenu:MenuElement({id = "HitChance", name = "HitChance", type = MENU})
+	self.LucianMenu.HitChance:MenuElement({id = "HCQ", name = "HitChance: Q", value = 15, min = 0, max = 100, step = 1})
+	self.LucianMenu.HitChance:MenuElement({id = "HCW", name = "HitChance: W", value = 15, min = 0, max = 100, step = 1})
+	self.LucianMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
+	self.LucianMenu.Drawings:MenuElement({id = "DrawQ", name = "Draw Q Range", value = true})
+	self.LucianMenu.Drawings:MenuElement({id = "DrawW", name = "Draw W Range", value = true})
+	self.LucianMenu.Drawings:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
+	self.LucianMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
+	self.LucianMenu.Drawings:MenuElement({id = "QRng", name = "Q Range Color", color = DrawColor(192, 0, 250, 154)})
+	self.LucianMenu.Drawings:MenuElement({id = "WRng", name = "W Range Color", color = DrawColor(192, 218, 112, 214)})
+	self.LucianMenu.Drawings:MenuElement({id = "ERng", name = "E Range Color", color = DrawColor(192, 255, 140, 0)})
+	self.LucianMenu.Drawings:MenuElement({id = "RRng", name = "R Range Color", color = DrawColor(192, 220, 20, 60)})
+	self.LucianMenu:MenuElement({id = "blank", name = "GoS-U Reborn v"..LuaVer.."", type = SPACE})
+	self.LucianMenu:MenuElement({id = "blank", name = "Author: Ark223", type = SPACE})
+	self.LucianMenu:MenuElement({id = "blank", name = "Credits: gamsteron", type = SPACE})
+	OnDraws.Champion = function() self:Draw() end
+	OnTicks.Champion = function() self:Tick() end
+	_G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
+	_G.SDK.Orbwalker:OnPostAttackTick(function(...) self:OnPostAttackTick(...) end)
+end
+
+function Lucian:Tick()
+	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead) then return end
+	self:Auto2()
+	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear() end
+	self.Range = myHero.range + myHero.boundingRadius * 1.5
+	self.Target = Module.TargetSelector:GetTarget(self.WData.range, nil)
+	if self.Target == nil then return end
+	if GoSuManager:GetOrbwalkerMode() == "Combo" then Module.Utility:Tick(); self:Combo(self.Target)
+	elseif GoSuManager:GetOrbwalkerMode() == "Harass" then self:Harass(self.Target)
+	else self:Auto(self.Target) end
+end
+
+function Lucian:Draw()
+	if self.LucianMenu.Drawings.DrawQ:Value() then DrawCircle(myHero.pos, self.QData.range, 1, self.LucianMenu.Drawings.QRng:Value()) end
+	if self.LucianMenu.Drawings.DrawW:Value() then DrawCircle(myHero.pos, self.WData.range, 1, self.LucianMenu.Drawings.WRng:Value()) end
+	if self.LucianMenu.Drawings.DrawE:Value() then DrawCircle(myHero.pos, self.EData.range, 1, self.LucianMenu.Drawings.ERng:Value()) end
+	if self.LucianMenu.Drawings.DrawR:Value() then DrawCircle(myHero.pos, self.RData.range, 1, self.LucianMenu.Drawings.RRng:Value()) end
+end
+
+function Lucian:OnPreAttack(args)
+	if GoSuManager:GetOrbwalkerMode() == "Combo" or GoSuManager:GetOrbwalkerMode() == "Harass" then
+		local target = Module.TargetSelector:GetTarget(self.Range, nil); args.Target = target
+	end
+end
+
+function Lucian:OnPostAttackTick(args)
+	if self.Target then
+		local Mode = GoSuManager:GetOrbwalkerMode()
+		if Mode == "Harass" and GoSuManager:GetPercentMana(myHero) <= self.LucianMenu.Harass.MP:Value() then return end
+		local target2 = Module.TargetSelector:GetTarget(self.QData.range + myHero.boundingRadius, nil)
+		if target2 and GoSuManager:IsReady(_Q) and ((self.LucianMenu.Combo.UseQ:Value() and Mode == "Combo") or (self.LucianMenu.Harass.UseQ:Value() and Mode == "Harass")) then
+			ControlCastSpell(HK_Q, target2.pos)
+		elseif GoSuManager:ValidTarget(self.Target, self.QData.range2) and GoSuManager:IsReady(_W) and ((self.LucianMenu.Combo.UseE:Value() and Mode == "Combo") or (self.LucianMenu.Harass.UseE:Value() and Mode == "Harass")) then
+			self:UseW(self.Target)
+		elseif GoSuManager:IsReady(_E) and ((self.LucianMenu.Combo.UseW:Value() and Mode == "Combo") or (self.LucianMenu.Harass.UseW:Value() and Mode == "Harass")) then
+			self:UseE(self.Target, Mode == "Combo" and self.LucianMenu.Combo.ModeE:Value() or self.LucianMenu.Harass.ModeE:Value())
+		end
+	end
+end
+
+function Lucian:Auto(target)
+	if target == nil or myHero.attackData.state == 2 then return end
+	if GoSuManager:GetPercentMana(myHero) > self.LucianMenu.Auto.MP:Value() and GoSuManager:IsReady(_Q) then
+		if self.LucianMenu.Auto.UseExQ:Value() and GoSuManager:ValidTarget(target, self.QData.range2) then
+			self:UseExQ(target)
+		end
+	end
+end
+
+function Lucian:Auto2()
+	for i, enemy in pairs(GoSuManager:GetEnemyHeroes()) do
+		if GoSuManager:IsReady(_E) and self.LucianMenu.AntiGapcloser.UseE:Value() and GoSuManager:ValidTarget(enemy, self.LucianMenu.AntiGapcloser.Distance:Value()) then
+			ControlCastSpell(HK_E, myHero.pos:Extended(enemy.pos, -self.LucianMenu.AntiGapcloser.CastE:Value()))
+		end
+	end
+end
+
+function Lucian:Combo(target)
+	if target == nil or myHero.attackData.state == 2 then return end
+	if self.LucianMenu.Combo.UseExQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.QData.range2) then
+		self:UseExQ(target)
+	end
+	if self.LucianMenu.Combo.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target, self.Range + self.EData.range) then
+		if GoSuGeometry:GetDistance(myHero.pos, target.pos) > (self.Range + target.boundingRadius) then self:UseE(target, 3) end
+	end
+end
+
+function Lucian:Harass(target)
+	if target == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.LucianMenu.Harass.MP:Value() then return end
+	if self.LucianMenu.Harass.UseExQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.QData.range2) then
+		self:UseExQ(target)
+	end
+	if self.LucianMenu.Harass.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target, self.Range + self.EData.range) then
+		if GoSuGeometry:GetDistance(myHero.pos, target.pos) > (self.Range + target.boundingRadius) then self:UseE(target, self.LucianMenu.Harass.ModeE:Value()) end
+	end
+end
+
+function Lucian:LaneClear()
+	if myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.LucianMenu.LaneClear.MP:Value() then return end
+	if GoSuManager:IsReady(_Q) and self.LucianMenu.LaneClear.UseQ:Value() then
+		local minions, count = GoSuManager:GetMinionsAround(myHero.pos, self.QData.range2)
+		if count > 0 then
+			for i = 1, #minions do
+				local minion = minions[i]
+				if GoSuGeometry:GetDistance(myHero.pos, minion.pos) < self.QData.range then
+					local MostHit = 0
+					for j = 1, #minions do
+						local target = minions[j]
+						local endPos = myHero.pos:Extended(minion.pos, self.QData.range2)
+						local pointSegment, pointLine, isOnSegment = GoSuGeometry:VectorPointProjectionOnLineSegment(myHero.pos, endPos, target.pos)
+						if isOnSegment and GoSuGeometry:GetDistanceSqr(pointSegment, target.pos) <= (self.QData.radius + target.boundingRadius / 2) ^ 2 then
+							MostHit = MostHit + 1
+						end
+					end
+					if MostHit >= self.LucianMenu.LaneClear.MMH:Value() then ControlCastSpell(HK_Q, minion.pos); return end
+				end
+			end
+		end
+	end
+end
+
+function Lucian:UseExQ(target)
+	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.QData.speed, self.QData.range2, self.QData.delay, self.QData.radius, nil, self.QData.collision)
+	if CastPos and HitChance >= (self.LucianMenu.HitChance.HCQ:Value() / 100) then
+		local minions, count = GoSuManager:GetMinionsAround(myHero.pos, self.QData.range2)
+		if count > 0 then
+			for i = 1, #minions do
+				local minion = minions[i]
+				if GoSuGeometry:GetDistance(myHero.pos, minion.pos) <= self.QData.range and not GoSuManager:IsUnderTurret(myHero.pos) then
+					local pointSegment, pointLine, isOnSegment = GoSuGeometry:VectorPointProjectionOnLineSegment(myHero.pos, CastPos, minion.pos)
+					if isOnSegment and GoSuGeometry:GetDistanceSqr(pointSegment, CastPos) <= (self.QData.radius + target.boundingRadius) ^ 2 then ControlCastSpell(HK_Q, minion.pos) end
+				end
+			end
+		end
+	end
+end
+
+function Lucian:UseW(target)
+	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.WData.speed, self.WData.range, self.WData.delay, self.WData.radius, nil, self.WData.collision)
+	if CastPos and HitChance >= (self.LucianMenu.HitChance.HCW:Value() / 100) then ControlCastSpell(HK_W, CastPos) end
+end
+
+function Lucian:UseE(target, mode)
+	if mode == 1 then ControlCastSpell(HK_E, mousePos)
+	elseif mode == 3 then ControlCastSpell(HK_E, myHero.pos:Extended(target.pos, self.EData.range))
+	else
+		local p1, p2 = GoSuGeometry:CircleCircleIntersection(myHero.pos, target.pos, myHero.range, self.EData.range + 50)
+		if p1 and p2 then
+			local pos = GoSuGeometry:GetDistance(p1, mousePos) > GoSuGeometry:GetDistance(p2, mousePos) and p2 or p1
+			ControlCastSpell(HK_E, myHero.pos:Extended(pos, MathMin(GoSuGeometry:GetDistance(myHero.pos, target.pos) / 4, self.EData.range)))
+		else ControlCastSpell(HK_E, mousePos) end
+	end
+	DelayAction(function() _G.SDK.Orbwalker:__OnAutoAttackReset() end, 0.05)
+end
+
+--[[
 	┌─┐┬┬  ┬┬┬─┐
 	└─┐│└┐┌┘│├┬┘
 	└─┘┴ └┘ ┴┴└─
@@ -1839,7 +2041,7 @@ end
 function Sivir:Tick()
 	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead) then return end
 	self:Auto2()
-	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear(); return end
+	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear() end
 	self.Range = myHero.range + myHero.boundingRadius * 1.5
 	self.Target = Module.TargetSelector:GetTarget(self.QData.range, nil)
 	if self.Target == nil then return end
