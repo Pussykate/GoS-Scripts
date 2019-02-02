@@ -574,10 +574,12 @@ function GoSuGeometry:CircleCircleIntersection(c1, c2, r1, r2)
 end
 
 function GoSuGeometry:CutUnitsRange(units, range)
+	local units = units
 	for i = 1, #units do
 		local unit = units[i]
 		if unit and self:GetDistance(myHero.pos, unit.pos) > range then TableRemove(units, i) end
 	end
+	return units
 end
 
 function GoSuGeometry:GetBestCircularAOEPos(units, radius, expected)
