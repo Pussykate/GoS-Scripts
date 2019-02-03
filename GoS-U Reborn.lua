@@ -1804,9 +1804,9 @@ function KogMaw:OnPreAttack(args)
 end
 
 function KogMaw:Auto(target)
-	if target == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.KogMawMenu.Auto.MP:Value() then return end
+	if target == nil or myHero.attackData.state == 2 then return end
 	if self.KogMawMenu.Auto.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.QData.range) then
-		self:UseQ(target)
+		if GoSuManager:GetPercentMana(myHero) > self.KogMawMenu.Auto.MP:Value() then self:UseQ(target) end
 	end
 	if self.KogMawMenu.Auto.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target, self.RRange) then
 		if GameTimer() > self.Timer + 0.25 then self:UseR(target, self.RRange) end
