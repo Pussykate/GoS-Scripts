@@ -1871,10 +1871,10 @@ function Lucian:OnPostAttackTick(args)
 		local target2 = Module.TargetSelector:GetTarget(self.QData.range + myHero.boundingRadius, nil)
 		if target2 and GoSuManager:IsReady(_Q) and ((self.LucianMenu.Combo.UseQ:Value() and Mode == "Combo") or (self.LucianMenu.Harass.UseQ:Value() and Mode == "Harass")) then
 			ControlCastSpell(HK_Q, target2.pos)
-		elseif GoSuManager:ValidTarget(self.Target, self.QData.range2) and GoSuManager:IsReady(_W) and ((self.LucianMenu.Combo.UseE:Value() and Mode == "Combo") or (self.LucianMenu.Harass.UseE:Value() and Mode == "Harass")) then
-			self:UseW(self.Target)
-		elseif GoSuManager:IsReady(_E) and ((self.LucianMenu.Combo.UseW:Value() and Mode == "Combo") or (self.LucianMenu.Harass.UseW:Value() and Mode == "Harass")) then
+		elseif GoSuManager:IsReady(_E) and ((self.LucianMenu.Combo.UseE:Value() and Mode == "Combo") or (self.LucianMenu.Harass.UseE:Value() and Mode == "Harass")) then
 			self:UseE(self.Target, Mode == "Combo" and self.LucianMenu.Combo.ModeE:Value() or self.LucianMenu.Harass.ModeE:Value())
+		elseif GoSuManager:ValidTarget(self.Target, self.WData.range) and GoSuManager:IsReady(_W) and ((self.LucianMenu.Combo.UseW:Value() and Mode == "Combo") or (self.LucianMenu.Harass.UseW:Value() and Mode == "Harass")) then
+			self:UseW(self.Target)
 		end
 	end
 end
