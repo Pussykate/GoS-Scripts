@@ -8,6 +8,9 @@
 
 	Changelog:
 
+	v1.0.7
+	+ Added KaiSa
+
 	v1.0.6
 	+ Added Lucian
 
@@ -94,9 +97,9 @@ local OnDraws = {Awareness = nil, BaseUlt = nil, Champion = nil, TargetSelector 
 local OnRecalls = {Awareness = nil, BaseUlt = nil}
 local OnTicks = {Champion = nil, Utility = nil}
 local BaseUltC = {["Ashe"] = true, ["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true}
-local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["KaiSa"] = false, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = true, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = true, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
+local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["Kaisa"] = true, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = true, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = true, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
 local Item_HK = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6, [ITEM_7] = HK_ITEM_7}
-local Version = "1.06"; local LuaVer = "1.0.6"
+local Version = "1.07"; local LuaVer = "1.0.7"
 local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.version"
 local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.lua"
 
@@ -424,6 +427,9 @@ local DamageTable = {
 		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({250, 350, 450})[GoSuManager:GetCastLevel(myHero, _R)] + 1.5 * myHero.bonusDamage + ({0.25, 0.3, 0.35})[GoSuManager:GetCastLevel(myHero, _R)] * target.maxHealth)) end},
 		{slot = 3, state = 1, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({25, 35, 45})[GoSuManager:GetCastLevel(myHero, _R)] + 0.15 * myHero.bonusDamage + ({0.25, 0.3, 0.35})[GoSuManager:GetCastLevel(myHero, _R)] * target.maxHealth)) end},
 	},
+	["Kaisa"] = {
+		{slot = 1, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({20, 45, 70, 95, 120})[GoSuManager:GetCastLevel(myHero, _W)] + 1.5 * myHero.totalDamage + 0.6 * myHero.ap)) end},
+	},
 	["Kalista"] = {
 		{slot = 2, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, GoSuManager:GotBuff(target, "kalistaexpungemarker") > 0 and ((({20, 30, 40, 50, 60})[GoSuManager:GetCastLevel(myHero, _E)] + 0.6 * myHero.bonusDamage) + ((GoSuManager:GotBuff(target, "kalistaexpungemarker") - 1) * (({10, 14, 19, 25, 32})[GoSuManager:GetCastLevel(myHero, _E)] + ({0.2, 0.2375, 0.275, 0.3125, 0.35})[GoSuManager:GetCastLevel(myHero, _E)] * myHero.totalDamage)))) end},
 	},
@@ -486,9 +492,9 @@ local SpellData = {
 		[2] = {speed = 1750, range = 900, delay = 0, radius = 120, collision = true},
 		[3] = {speed = 1700, delay = 0.6, radius = 140, collision = false},
 	},
-	["KaiSa"] = {
+	["Kaisa"] = {
 		[0] = {range = 600},
-	--	[1] = {speed = ???, range = 3000, delay = 0.25, radius = ???, collision = true},
+		[1] = {speed = 1750, range = 3000, delay = 0.4, radius = 100, collision = true},
 	},
 	["Kalista"] = {
 		[0] = {speed = 2400, range = 1150, delay = 0.25, radius = 40, collision = true},
@@ -1112,7 +1118,7 @@ class "GoSuTargetSelector"
 function GoSuTargetSelector:__init()
 	self.Timer = 0
 	self.SelectedTarget = nil
-	self.DamageType = {["Ashe"] = "AD", ["Caitlyn"] = "AD", ["Corki"] = "HB", ["Draven"] = "AD", ["Ezreal"] = "AD", ["Jhin"] = "AD", ["Jinx"] = "AD", ["KaiSa"] = "HB", ["Kalista"] = "AD", ["KogMaw"] = "HB", ["Lucian"] = "AD", ["MissFortune"] = "AD", ["Quinn"] = "AD", ["Sivir"] = "AD", ["Tristana"] = "AD", ["Twitch"] = "AD", ["Varus"] = "AD", ["Vayne"] = "AD", ["Xayah"] = "AD"}
+	self.DamageType = {["Ashe"] = "AD", ["Caitlyn"] = "AD", ["Corki"] = "HB", ["Draven"] = "AD", ["Ezreal"] = "AD", ["Jhin"] = "AD", ["Jinx"] = "AD", ["Kaisa"] = "HB", ["Kalista"] = "AD", ["KogMaw"] = "HB", ["Lucian"] = "AD", ["MissFortune"] = "AD", ["Quinn"] = "AD", ["Sivir"] = "AD", ["Tristana"] = "AD", ["Twitch"] = "AD", ["Varus"] = "AD", ["Vayne"] = "AD", ["Xayah"] = "AD"}
 	self.Damage = function(target, dmgType, value) return (dmgType == "AD" and GoSuManager:CalcPhysicalDamage(myHero, target, value)) or (GoSuManager:CalcPhysicalDamage(myHero, target, value / 2) + GoSuManager:CalcMagicalDamage(myHero, target, value / 2)) end
 	self.Modes = {
 		[1] = function(a,b) return self.Damage(a, self.DamageType[myHero.charName], 100) / (1 + a.health) * self:GetPriority(a) > self.Damage(b, self.DamageType[myHero.charName], 100) / (1 + b.health) * self:GetPriority(b) end,
@@ -1572,6 +1578,137 @@ end
 function Ezreal:UseR(target, range)
 	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.RData.speed, range, self.RData.delay, self.RData.radius, nil, self.RData.collision)
 	if CastPos and HitChance >= (self.EzrealMenu.HitChance.HCR:Value() / 100) then ControlCastSpell(HK_R, myHero.pos:Extended(CastPos, 1000)) end
+end
+
+--[[
+	┬┌─┌─┐┬┌─┐┌─┐
+	├┴┐├─┤│└─┐├─┤
+	┴ ┴┴ ┴┴└─┘┴ ┴
+--]]
+
+class "Kaisa"
+
+function Kaisa:__init()
+	self.Target1 = nil; self.Target2 = nil; self.Timer = 0
+	self.HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/4/49/Kai%27SaSquare.png"
+	self.QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/9/9a/Icathian_Rain.png"
+	self.WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/8/89/Void_Seeker.png"
+	self.EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e4/Supercharge.png"
+	self.QData = SpellData[myHero.charName][0]; self.WData = SpellData[myHero.charName][1]
+	self.KaisaMenu = MenuElement({type = MENU, id = "Kaisa", name = "[GoS-U] Kai'Sa", leftIcon = self.HeroIcon})
+	self.KaisaMenu:MenuElement({id = "Auto", name = "Auto", type = MENU})
+	self.KaisaMenu.Auto:MenuElement({id = "UseQ", name = "Use Q [Icathian Rain]", value = true, leftIcon = self.QIcon})
+	self.KaisaMenu.Auto:MenuElement({id = "MP", name = "Mana-Manager: Q", value = 40, min = 0, max = 100, step = 5})
+	self.KaisaMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.KaisaMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Icathian Rain]", value = true, leftIcon = self.QIcon})
+	self.KaisaMenu.Combo:MenuElement({id = "UseW", name = "Use W [Void Seeker]", value = true, leftIcon = self.WIcon})
+	self.KaisaMenu.Combo:MenuElement({id = "UseE", name = "Use E [Supercharge]", value = true, leftIcon = self.EIcon})
+	self.KaisaMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.KaisaMenu.Harass:MenuElement({id = "UseQ", name = "Use Q [Icathian Rain]", value = true, leftIcon = self.QIcon})
+	self.KaisaMenu.Harass:MenuElement({id = "UseW", name = "Use W [Void Seeker]", value = true, leftIcon = self.WIcon})
+	self.KaisaMenu.Harass:MenuElement({id = "UseE", name = "Use E [Supercharge]", value = false, leftIcon = self.EIcon})
+	self.KaisaMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager: Q", value = 40, min = 0, max = 100, step = 5})
+	self.KaisaMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
+	self.KaisaMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Icathian Rain]", value = true, leftIcon = self.QIcon})
+	self.KaisaMenu.LaneClear:MenuElement({id = "MMH", name = "Minimum Minions To Hit", value = 5, min = 1, max = 10, step = 1})
+	self.KaisaMenu.LaneClear:MenuElement({id = "MP", name = "Mana-Manager: Q", value = 40, min = 0, max = 100, step = 5})
+	self.KaisaMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
+	self.KaisaMenu.KillSteal:MenuElement({id = "UseW", name = "Use W [Void Seeker]", value = true, leftIcon = self.WIcon})
+	self.KaisaMenu:MenuElement({id = "HitChance", name = "HitChance", type = MENU})
+	self.KaisaMenu.HitChance:MenuElement({id = "HCW", name = "HitChance: W", value = 35, min = 0, max = 100, step = 1})
+	self.KaisaMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
+	self.KaisaMenu.Drawings:MenuElement({id = "DrawQ", name = "Draw Q Range", value = true})
+	self.KaisaMenu.Drawings:MenuElement({id = "DrawW", name = "Draw W Range", value = true})
+	self.KaisaMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
+	self.KaisaMenu.Drawings:MenuElement({id = "QRng", name = "Q Range Color", color = DrawColor(192, 0, 250, 154)})
+	self.KaisaMenu.Drawings:MenuElement({id = "WRng", name = "W Range Color", color = DrawColor(192, 218, 112, 214)})
+	self.KaisaMenu:MenuElement({id = "blank", name = "GoS-U Reborn v"..LuaVer.."", type = SPACE})
+	self.KaisaMenu:MenuElement({id = "blank", name = "Author: Ark223", type = SPACE})
+	self.KaisaMenu:MenuElement({id = "blank", name = "Credits: gamsteron", type = SPACE})
+	OnDraws.Champion = function() self:Draw() end
+	OnTicks.Champion = function() self:Tick() end
+	_G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
+end
+
+function Kaisa:Tick()
+	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead or GoSuManager:GotBuff(myHero, "KaisaE") > 0) then return end
+	self:Auto2()
+	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear() end
+	self.Range = myHero.range + myHero.boundingRadius * 1.5
+	self.Target1 = Module.TargetSelector:GetTarget(self.QData.range, nil)
+	self.Target2 = Module.TargetSelector:GetTarget(self.WData.range, nil)
+	if self.Target2 == nil then return end
+	if GoSuManager:GetOrbwalkerMode() == "Combo" then Module.Utility:Tick(); self:Combo(self.Target1, self.Target2)
+	elseif GoSuManager:GetOrbwalkerMode() == "Harass" then self:Harass(self.Target1, self.Target2)
+	else self:Auto(self.Target1) end
+end
+
+function Kaisa:Draw()
+	if self.KaisaMenu.Drawings.DrawQ:Value() then DrawCircle(myHero.pos, self.QData.range, 1, self.KaisaMenu.Drawings.QRng:Value()) end
+	if self.KaisaMenu.Drawings.DrawW:Value() then DrawCircle(myHero.pos, self.WData.range, 1, self.KaisaMenu.Drawings.WRng:Value()) end
+end
+
+function Kaisa:OnPreAttack(args)
+	if GoSuManager:GetOrbwalkerMode() == "Combo" or GoSuManager:GetOrbwalkerMode() == "Harass" then
+		local target = Module.TargetSelector:GetTarget(self.Range, nil); args.Target = target
+	end
+end
+
+function Kaisa:Auto(target)
+	if target == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.KaisaMenu.Auto.MP:Value() then return end
+	if self.KaisaMenu.Auto.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.QData.range) then
+		ControlCastSpell(HK_Q)
+	end
+end
+
+function Kaisa:Auto2()
+	for i, enemy in pairs(GoSuManager:GetEnemyHeroes()) do
+		if enemy and GoSuManager:IsReady(_W) and self.KaisaMenu.KillSteal.UseW:Value() and GoSuManager:ValidTarget(enemy, self.WData.range) then
+			local WDmg = GoSuManager:GetDamage(enemy, 1, 0)
+			if WDmg > enemy.health then
+				self:UseW(enemy)
+			end
+		end
+	end
+end
+
+function Kaisa:Combo(target1, target2)
+	if target2 == nil or myHero.attackData.state == 2 then return end
+	if self.KaisaMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target1, self.QData.range) then
+		ControlCastSpell(HK_Q)
+	end
+	if self.KaisaMenu.Combo.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target2, self.Range + 400) then
+		if GoSuGeometry:GetDistance(myHero.pos, target2.pos) > self.Range then ControlCastSpell(HK_E) end
+	end
+	if self.KaisaMenu.Combo.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target2, self.WData.range) then
+		self:UseW(target2)
+	end
+end
+
+function Kaisa:Harass(target1, target2)
+	if target2 == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.KaisaMenu.Harass.MP:Value() then return end
+	if self.KaisaMenu.Harass.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target1, self.QData.range) then
+		ControlCastSpell(HK_Q)
+	end
+	if self.KaisaMenu.Harass.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target2, self.Range + 400) then
+		if GoSuGeometry:GetDistance(myHero.pos, target2.pos) > self.Range then ControlCastSpell(HK_E) end
+	end
+	if self.KaisaMenu.Harass.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target2, self.WData.range) then
+		self:UseW(target2)
+	end
+end
+
+function Kaisa:LaneClear()
+	if myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.KaisaMenu.LaneClear.MP:Value() then return end
+	local minions, count = GoSuManager:GetMinionsAround(myHero.pos, self.QData.range)
+	if count >= self.KaisaMenu.LaneClear.MMH:Value() and GoSuManager:IsReady(_Q) and self.KaisaMenu.LaneClear.UseQ:Value() then
+		ControlCastSpell(HK_Q)
+	end
+end
+
+function Kaisa:UseW(target)
+	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.WData.speed, self.WData.range, self.WData.delay, self.WData.radius, nil, self.WData.collision)
+	if CastPos and HitChance >= (self.KaisaMenu.HitChance.HCW:Value() / 100) then ControlCastSpell(HK_W, myHero.pos:Extended(CastPos, 500)) end
 end
 
 --[[
