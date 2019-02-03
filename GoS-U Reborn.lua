@@ -595,12 +595,13 @@ end
 function GoSuGeometry:GetBestCircularAOEPos(units, radius, expected)
 	local BestPos = nil; local MostHit = 0
 	for i = 1, #units do
-		local unit = units[i]
+		local unit = units[i]; local MostHit = 0
 		for j = 1, #units do
 			local target = units[j]
-			if self:GetDistance(target.pos, unit.pos) <= radius * 1.5 then MostHit = MostHit + 1; BestPos = unit.pos end
+			if self:GetDistance(target.pos, unit.pos) <= radius then MostHit = MostHit + 1 end
 		end
-		if MostHit > expected then return BestPos, MostHit end; MostHit = 0
+		BestPos = unit.pos
+		if MostHit >= expected then return BestPos, MostHit end
 	end
 	return nil, 0
 end
@@ -1839,7 +1840,7 @@ function KogMaw:Combo(target1, target2)
 	end
 	if GoSuManager:GetPercentMana(myHero) > self.KogMawMenu.Combo.MP:Value() and self.KogMawMenu.Combo.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target2, self.RRange) then
 		if GoSuManager:GetPercentHP(target2) > self.KogMawMenu.Combo.HP:Value() and (GoSuManager:GotBuff(myHero, "kogmawlivingartillerycost") + 1) <= self.KogMawMenu.Combo.MaxStacks:Value() or GoSuManager:GetPercentHP(target2) <= self.KogMawMenu.Combo.HP:Value() then
-			self:UseR(target2, self.RRange)
+			if GoSuGeometry:GetDistance(myHero.pos, target2.pos) > self.AARange then self:UseR(target2, self.RRange) end
 		end
 	end
 end
@@ -1854,7 +1855,7 @@ function KogMaw:Harass(target1, target2)
 	end
 	if GoSuManager:GetPercentMana(myHero) > self.KogMawMenu.Harass.MP:Value() and self.KogMawMenu.Harass.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target2, self.RRange) then
 		if GoSuManager:GetPercentHP(target2) > self.KogMawMenu.Harass.HP:Value() and (GoSuManager:GotBuff(myHero, "kogmawlivingartillerycost") + 1) <= self.KogMawMenu.Harass.MaxStacks:Value() then
-			self:UseR(target2, self.RRange)
+			if GoSuGeometry:GetDistance(myHero.pos, target2.pos) > self.AARange then self:UseR(target2, self.RRange) end
 		end
 	end
 end
