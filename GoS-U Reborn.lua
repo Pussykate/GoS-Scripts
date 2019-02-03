@@ -1949,7 +1949,7 @@ function Lucian:UseExQ(target)
 				local minion = minions[i]
 				if GoSuGeometry:GetDistance(myHero.pos, minion.pos) <= self.QData.range and not GoSuManager:IsUnderTurret(myHero.pos) then
 					local pointSegment, pointLine, isOnSegment = GoSuGeometry:VectorPointProjectionOnLineSegment(myHero.pos, CastPos, minion.pos)
-					if isOnSegment and GoSuGeometry:GetDistanceSqr(pointSegment, CastPos) <= self.QData.radius ^ 2 then ControlCastSpell(HK_Q, minion.pos) end
+					if GoSuGeometry:GetDistanceSqr(pointLine, CastPos) <= self.QData.radius ^ 2 then ControlCastSpell(HK_Q, minion.pos) end
 				end
 			end
 		end
