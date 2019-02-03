@@ -1602,11 +1602,9 @@ function Kaisa:__init()
 	self.KaisaMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
 	self.KaisaMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Icathian Rain]", value = true, leftIcon = self.QIcon})
 	self.KaisaMenu.Combo:MenuElement({id = "UseW", name = "Use W [Void Seeker]", value = true, leftIcon = self.WIcon})
-	self.KaisaMenu.Combo:MenuElement({id = "UseE", name = "Use E [Supercharge]", value = true, leftIcon = self.EIcon})
 	self.KaisaMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
 	self.KaisaMenu.Harass:MenuElement({id = "UseQ", name = "Use Q [Icathian Rain]", value = true, leftIcon = self.QIcon})
 	self.KaisaMenu.Harass:MenuElement({id = "UseW", name = "Use W [Void Seeker]", value = true, leftIcon = self.WIcon})
-	self.KaisaMenu.Harass:MenuElement({id = "UseE", name = "Use E [Supercharge]", value = false, leftIcon = self.EIcon})
 	self.KaisaMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager: Q", value = 40, min = 0, max = 100, step = 5})
 	self.KaisaMenu:MenuElement({id = "LaneClear", name = "LaneClear", type = MENU})
 	self.KaisaMenu.LaneClear:MenuElement({id = "UseQ", name = "Use Q [Icathian Rain]", value = true, leftIcon = self.QIcon})
@@ -1677,9 +1675,6 @@ function Kaisa:Combo(target1, target2)
 	if self.KaisaMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target1, self.QData.range) then
 		ControlCastSpell(HK_Q)
 	end
-	if self.KaisaMenu.Combo.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target2, self.Range + 400) then
-		if GoSuGeometry:GetDistance(myHero.pos, target2.pos) > self.Range then ControlCastSpell(HK_E) end
-	end
 	if self.KaisaMenu.Combo.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target2, self.WData.range) then
 		self:UseW(target2)
 	end
@@ -1689,9 +1684,6 @@ function Kaisa:Harass(target1, target2)
 	if target2 == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.KaisaMenu.Harass.MP:Value() then return end
 	if self.KaisaMenu.Harass.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target1, self.QData.range) then
 		ControlCastSpell(HK_Q)
-	end
-	if self.KaisaMenu.Harass.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target2, self.Range + 400) then
-		if GoSuGeometry:GetDistance(myHero.pos, target2.pos) > self.Range then ControlCastSpell(HK_E) end
 	end
 	if self.KaisaMenu.Harass.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target2, self.WData.range) then
 		self:UseW(target2)
