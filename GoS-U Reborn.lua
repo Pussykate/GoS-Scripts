@@ -501,7 +501,7 @@ local SpellData = {
 		[3] = {speed = MathHuge, range = 1300, delay = 1.1, radius = 200, collision = false},
 	},
 	["Lucian"] = {
-		[0] = {speed = MathHuge, range = 500, range2 = 900, delay = 0.35, radius = 45, collision = false},
+		[0] = {speed = MathHuge, range = 500, range2 = 900, delay = 0.35, radius = 65, collision = false},
 		[1] = {speed = 1600, range = 900, delay = 0.25, radius = 40, collision = true},
 		[2] = {range = 425},
 		[3] = {speed = 2800, range = 1200, delay = 0, radius = 110, collision = true},
@@ -1929,7 +1929,7 @@ function Lucian:LaneClear()
 						local target = minions[j]
 						local endPos = myHero.pos:Extended(minion.pos, self.QData.range2)
 						local pointSegment, pointLine, isOnSegment = GoSuGeometry:VectorPointProjectionOnLineSegment(myHero.pos, endPos, target.pos)
-						if isOnSegment and GoSuGeometry:GetDistanceSqr(pointSegment, target.pos) <= (self.QData.radius + target.boundingRadius / 2) ^ 2 then
+						if isOnSegment and GoSuGeometry:GetDistanceSqr(pointSegment, target.pos) <= self.QData.radius ^ 2 then
 							MostHit = MostHit + 1
 						end
 					end
@@ -1949,7 +1949,7 @@ function Lucian:UseExQ(target)
 				local minion = minions[i]
 				if GoSuGeometry:GetDistance(myHero.pos, minion.pos) <= self.QData.range and not GoSuManager:IsUnderTurret(myHero.pos) then
 					local pointSegment, pointLine, isOnSegment = GoSuGeometry:VectorPointProjectionOnLineSegment(myHero.pos, CastPos, minion.pos)
-					if isOnSegment and GoSuGeometry:GetDistanceSqr(pointSegment, CastPos) <= (self.QData.radius + target.boundingRadius) ^ 2 then ControlCastSpell(HK_Q, minion.pos) end
+					if isOnSegment and GoSuGeometry:GetDistanceSqr(pointSegment, CastPos) <= self.QData.radius ^ 2 then ControlCastSpell(HK_Q, minion.pos) end
 				end
 			end
 		end
