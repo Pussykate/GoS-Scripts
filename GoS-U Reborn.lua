@@ -1785,7 +1785,7 @@ end
 class "Lucian"
 
 function Lucian:__init()
-	self.Target1 = nil; self.Target2 = nil
+	self.Target1 = nil; self.Target2 = nil; self.MPos = mousePos; self.Timer = GameTimer()
 	self.HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/1/1e/LucianSquare.png"
 	self.QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/2/2d/Piercing_Light.png"
 	self.WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/6/60/Ardent_Blaze.png"
@@ -1860,7 +1860,7 @@ end
 
 function Lucian:OnPreAttack(args)
 	if GoSuManager:GetOrbwalkerMode() == "Combo" or GoSuManager:GetOrbwalkerMode() == "Harass" then
-		local target = Module.TargetSelector:GetTarget(self.Range, nil); args.Target = target
+		local target = Module.TargetSelector:GetTarget(self.Range, nil); args.Target = target; self.MPos = mousePos; self.Timer = GameTimer()
 	end
 end
 
@@ -1962,14 +1962,15 @@ function Lucian:UseW(target)
 end
 
 function Lucian:UseE(target, mode)
-	if mode == 1 then ControlCastSpell(HK_E, mousePos)
+	if self.Timer + 1 < GameTimer() then self.MPos = mousePos end
+	if mode == 1 then ControlCastSpell(HK_E, self.MPos)
 	elseif mode == 3 then ControlCastSpell(HK_E, myHero.pos:Extended(target.pos, self.EData.range))
 	else
 		local p1, p2 = GoSuGeometry:CircleCircleIntersection(myHero.pos, target.pos, myHero.range, self.EData.range + 50)
 		if p1 and p2 then
-			local pos = GoSuGeometry:GetDistance(p1, mousePos) > GoSuGeometry:GetDistance(p2, mousePos) and p2 or p1
+			local pos = GoSuGeometry:GetDistance(p1, self.MPos) > GoSuGeometry:GetDistance(p2, self.MPos) and p2 or p1
 			ControlCastSpell(HK_E, myHero.pos:Extended(pos, MathMin(GoSuGeometry:GetDistance(myHero.pos, target.pos) / 4, self.EData.range)))
-		else ControlCastSpell(HK_E, mousePos) end
+		else ControlCastSpell(HK_E, self.MPos) end
 	end
 	DelayAction(function() _G.SDK.Orbwalker:__OnAutoAttackReset() end, 0.05)
 end
