@@ -8,6 +8,9 @@
 
 	Changelog:
 
+	v1.0.8
+	+ Added Under-Turret check in Auto mode
+
 	v1.0.7
 	+ Added KaiSa
 
@@ -99,7 +102,7 @@ local OnTicks = {Champion = nil, Utility = nil}
 local BaseUltC = {["Ashe"] = true, ["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true}
 local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["Kaisa"] = true, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = true, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = true, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
 local Item_HK = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6, [ITEM_7] = HK_ITEM_7}
-local Version = "1.07"; local LuaVer = "1.0.7"
+local Version = "1.08"; local LuaVer = "1.0.8"
 local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.version"
 local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.lua"
 
@@ -1311,7 +1314,7 @@ end
 
 function Ashe:Auto(target)
 	if target == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.AsheMenu.Auto.MP:Value() then return end
-	if self.AsheMenu.Auto.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target, self.WData.range) then
+	if self.AsheMenu.Auto.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target, self.WData.range) and not GoSuManager:IsUnderTurret(myHero.pos) then
 		self:UseW(target)
 	end
 end
@@ -1481,7 +1484,7 @@ end
 
 function Ezreal:Auto(target)
 	if target == nil or myHero.attackData.state == 2 then return end
-	if GoSuManager:GetPercentMana(myHero) > self.EzrealMenu.Auto.MP:Value() and GoSuManager:ValidTarget(target, self.QData.range) then
+	if GoSuManager:GetPercentMana(myHero) > self.EzrealMenu.Auto.MP:Value() and GoSuManager:ValidTarget(target, self.QData.range) and not GoSuManager:IsUnderTurret(myHero.pos) then
 		if self.EzrealMenu.Auto.UseW:Value() and ((self.EzrealMenu.Auto.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:IsReady(_W)) or (GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target, self.Range))) then
 			self:UseW(target)
 		elseif self.EzrealMenu.Auto.UseQ:Value() and GoSuManager:IsReady(_Q) then
@@ -1655,7 +1658,7 @@ end
 
 function Kaisa:Auto(target)
 	if target == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.KaisaMenu.Auto.MP:Value() then return end
-	if self.KaisaMenu.Auto.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.QData.range) then
+	if self.KaisaMenu.Auto.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.QData.range) and not GoSuManager:IsUnderTurret(myHero.pos) then
 		ControlCastSpell(HK_Q)
 	end
 end
@@ -1805,7 +1808,7 @@ end
 
 function KogMaw:Auto(target)
 	if target == nil or myHero.attackData.state == 2 then return end
-	if self.KogMawMenu.Auto.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.QData.range) then
+	if self.KogMawMenu.Auto.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.QData.range) and not GoSuManager:IsUnderTurret(myHero.pos) then
 		if GoSuManager:GetPercentMana(myHero) > self.KogMawMenu.Auto.MP:Value() then self:UseQ(target) end
 	end
 	if self.KogMawMenu.Auto.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target, self.RRange) then
@@ -2011,7 +2014,7 @@ end
 
 function Lucian:Auto(target)
 	if target == nil or myHero.attackData.state == 2 then return end
-	if GoSuManager:GetPercentMana(myHero) > self.LucianMenu.Auto.MP:Value() and GoSuManager:IsReady(_Q) then
+	if GoSuManager:GetPercentMana(myHero) > self.LucianMenu.Auto.MP:Value() and GoSuManager:IsReady(_Q) and not GoSuManager:IsUnderTurret(myHero.pos) then
 		if self.LucianMenu.Auto.UseExQ:Value() and GoSuManager:ValidTarget(target, self.QData.range2) then
 			self:UseExQ(target)
 		end
@@ -2199,7 +2202,7 @@ end
 
 function Sivir:Auto(target)
 	if target == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.SivirMenu.Auto.MP:Value() then return end
-	if self.SivirMenu.Auto.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.QData.range) then
+	if self.SivirMenu.Auto.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target, self.QData.range) and not GoSuManager:IsUnderTurret(myHero.pos) then
 		self:UseQ(target)
 	end
 end
@@ -2421,7 +2424,7 @@ function Vayne:Auto(target)
 	if target == nil and myHero.attackData.state == 2 then return end
 	if self.VayneMenu.Auto.UseE:Value() then
 		if GoSuManager:GetPercentMana(myHero) > self.VayneMenu.Auto.MP:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target, self.EData.range) then
-			if self:IsOnLineToStun(target) then ControlCastSpell(HK_E, target.pos) end
+			if self:IsOnLineToStun(target) and not GoSuManager:IsUnderTurret(myHero.pos) then ControlCastSpell(HK_E, target.pos) end
 		end
 	end
 end
