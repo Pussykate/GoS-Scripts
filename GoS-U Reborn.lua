@@ -1341,7 +1341,7 @@ function Ashe:Auto2()
 				end
 				if self.AsheMenu.Interrupter.UseRDash:Value() then
 					if enemy.pathing.isDashing and enemy.pathing.dashSpeed > 500 then
-						if GoSuManager:GetDistance(enemy.pos, myHero.pos) > GoSuManager:GetDistance(enemy.pathing.endPos, myHero.pos) then
+						if GoSuManager:GetDistance(enemy.pos, myHero.pos) > GoSuManager:GetDistance(Vector(enemy.pathing.endPos), myHero.pos) then
 							self:UseR(enemy, self.AsheMenu.Interrupter.Distance:Value())
 						end
 					end
@@ -2451,7 +2451,7 @@ function Vayne:Auto2()
 				end
 				if self.VayneMenu.Interrupter.UseEDash:Value() then
 					if enemy.pathing.isDashing and enemy.pathing.dashSpeed > 500 then
-						if GoSuManager:GetDistance(enemy.pos, myHero.pos) > GoSuManager:GetDistance(enemy.pathing.endPos, myHero.pos) then
+						if GoSuManager:GetDistance(enemy.pos, myHero.pos) > GoSuManager:GetDistance(Vector(enemy.pathing.endPos), myHero.pos) then
 							ControlCastSpell(HK_E, enemy.pos)
 						end
 					end
