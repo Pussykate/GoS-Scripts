@@ -8,6 +8,9 @@
 
 	Changelog:
 
+	v1.0.8.1
+	+ Fixed Interrupter
+
 	v1.0.8
 	+ Added Under-Turret check in Auto mode
 
@@ -102,7 +105,7 @@ local OnTicks = {Champion = nil, Utility = nil}
 local BaseUltC = {["Ashe"] = true, ["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true}
 local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["Kaisa"] = true, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = true, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = true, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
 local Item_HK = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6, [ITEM_7] = HK_ITEM_7}
-local Version = "1.08"; local LuaVer = "1.0.8"
+local Version = "1.081"; local LuaVer = "1.0.8.1"
 local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.version"
 local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.lua"
 
@@ -126,6 +129,7 @@ function OnLoad()
 	Module.TargetSelector = GoSuTargetSelector()
 	Module.Utility = GoSuUtility()
 	if Champions[myHero.charName] then _G[myHero.charName]() end
+	PremiumPrediction()
 	LoadUnits()
 	AutoUpdate()
 end
@@ -1344,7 +1348,7 @@ function Ashe:Auto2()
 				end
 				if self.AsheMenu.Interrupter.UseRDash:Value() then
 					if enemy.pathing.isDashing and enemy.pathing.dashSpeed > 500 then
-						if GoSuManager:GetDistance(enemy.pos, myHero.pos) > GoSuManager:GetDistance(Vector(enemy.pathing.endPos), myHero.pos) then
+						if GoSuGeometry:GetDistance(enemy.pos, myHero.pos) > GoSuGeometry:GetDistance(Vector(enemy.pathing.endPos), myHero.pos) then
 							self:UseR(enemy, self.AsheMenu.Interrupter.Distance:Value())
 						end
 					end
@@ -2454,7 +2458,7 @@ function Vayne:Auto2()
 				end
 				if self.VayneMenu.Interrupter.UseEDash:Value() then
 					if enemy.pathing.isDashing and enemy.pathing.dashSpeed > 500 then
-						if GoSuManager:GetDistance(enemy.pos, myHero.pos) > GoSuManager:GetDistance(Vector(enemy.pathing.endPos), myHero.pos) then
+						if GoSuGeometry:GetDistance(enemy.pos, myHero.pos) > GoSuGeometry:GetDistance(Vector(enemy.pathing.endPos), myHero.pos) then
 							ControlCastSpell(HK_E, enemy.pos)
 						end
 					end
