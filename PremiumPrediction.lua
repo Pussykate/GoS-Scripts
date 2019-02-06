@@ -56,7 +56,7 @@ local u = table.insert
 local v = table.remove
 local w = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.version"
 local x = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua"
-local y = "1.1"
+local y = "1.11"
 
 function DownloadFile(z, A)
 	DownloadFileAsync(z, A, function() end)
@@ -72,7 +72,7 @@ end
 
 function AutoUpdate()
 	DownloadFile(w, COMMON_PATH .. "PremiumPrediction.version", function() end)
-	if tonumber(ReadFile(COMMON_PATH, "PremiumPrediction.version")) > tonumber(y) then
+	if tonumber(ReadFile(COMMON_PATH .. "PremiumPrediction.version")) > tonumber(y) then
 		print("PremiumPrediction: Downloading update...")
 		DownloadFile(x, COMMON_PATH .. "PremiumPrediction.lua", function() end)
 		print("PremiumPrediction: Successfully updated. 2xF6!")
