@@ -121,7 +121,7 @@ end
 
 function OnLoad()
 	require 'MapPositionGOS'
-	require 'PremiumPrediction'
+	if FileExist(COMMON_PATH .. "PremiumPrediction.lua") then require 'PremiumPrediction' end
 	Module.Awareness = GoSuAwareness()
 	if BaseUltC[myHero.charName] then Module.BaseUlt = GoSuBaseUlt() end
 	Module.Geometry = GoSuGeometry()
