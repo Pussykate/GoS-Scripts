@@ -8,6 +8,9 @@
 
 	Changelog:
 
+	v1.0.8.2
+	+ Minor changes
+
 	v1.0.8.1
 	+ Fixed Interrupter
 
@@ -105,7 +108,7 @@ local OnTicks = {Champion = nil, Utility = nil}
 local BaseUltC = {["Ashe"] = true, ["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true}
 local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["Kaisa"] = true, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = true, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = true, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
 local Item_HK = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6, [ITEM_7] = HK_ITEM_7}
-local Version = "1.081"; local LuaVer = "1.0.8.1"
+local Version = "1.082"; local LuaVer = "1.0.8.2"
 local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.version"
 local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.lua"
 
@@ -1366,7 +1369,7 @@ end
 
 function Ashe:Combo(target1, target2)
 	if target2 == nil or myHero.attackData.state == 2 then return end
-	if self.AsheMenu.Combo.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target1, self.WData.range) then
+	if target1 and self.AsheMenu.Combo.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target1, self.WData.range) then
 		self:UseW(target1)
 	end
 	if self.AsheMenu.Combo.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target2, self.AsheMenu.Combo.Distance:Value()) then
@@ -1521,14 +1524,14 @@ end
 
 function Ezreal:Combo(target1, target2)
 	if target2 == nil or myHero.attackData.state == 2 then return end
-	if GoSuManager:ValidTarget(target1, self.QData.range) then
+	if target1 and GoSuManager:ValidTarget(target1, self.QData.range) then
 		if self.EzrealMenu.Combo.UseW:Value() and ((self.EzrealMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:IsReady(_W)) or (GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target1, self.Range))) then
 			self:UseW(target1)
 		elseif self.EzrealMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) then
 			self:UseQ(target1)
 		end
 	end
-	if self.EzrealMenu.Combo.UseE:Value() and GoSuManager:IsReady(_E) and GoSuGeometry:GetDistance(myHero.pos, target1.pos) > self.Range then
+	if target1 and self.EzrealMenu.Combo.UseE:Value() and GoSuManager:IsReady(_E) and GoSuGeometry:GetDistance(myHero.pos, target1.pos) > self.Range then
 		ControlCastSpell(HK_E, myHero.pos:Extended(mousePos, self.EData.range))
 	end
 	if self.EzrealMenu.Combo.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target2, self.EzrealMenu.Combo.Distance:Value()) then
@@ -1680,7 +1683,7 @@ end
 
 function Kaisa:Combo(target1, target2)
 	if target2 == nil or myHero.attackData.state == 2 then return end
-	if self.KaisaMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target1, self.QData.range) then
+	if target1 and self.KaisaMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target1, self.QData.range) then
 		ControlCastSpell(HK_Q)
 	end
 	if self.KaisaMenu.Combo.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target2, self.WData.range) then
@@ -1690,7 +1693,7 @@ end
 
 function Kaisa:Harass(target1, target2)
 	if target2 == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.KaisaMenu.Harass.MP:Value() then return end
-	if self.KaisaMenu.Harass.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target1, self.QData.range) then
+	if target1 and self.KaisaMenu.Harass.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target1, self.QData.range) then
 		ControlCastSpell(HK_Q)
 	end
 	if self.KaisaMenu.Harass.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target2, self.WData.range) then
@@ -1839,11 +1842,13 @@ end
 
 function KogMaw:Combo(target1, target2)
 	if target2 == nil or myHero.attackData.state == 2 then return end
-	if self.KogMawMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target1, self.QData.range) then
-		self:UseQ(target1)
-	end
-	if self.KogMawMenu.Combo.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target1, self.EData.range) then
-		self:UseE(target1)
+	if target1 then
+		if self.KogMawMenu.Combo.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target1, self.QData.range) then
+			self:UseQ(target1)
+		end
+		if self.KogMawMenu.Combo.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target1, self.EData.range) then
+			self:UseE(target1)
+		end
 	end
 	if GoSuManager:GetPercentMana(myHero) > self.KogMawMenu.Combo.MP:Value() and self.KogMawMenu.Combo.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target2, self.RRange) then
 		if GoSuManager:GetPercentHP(target2) > self.KogMawMenu.Combo.HP:Value() and (GoSuManager:GotBuff(myHero, "kogmawlivingartillerycost") + 1) <= self.KogMawMenu.Combo.MaxStacks:Value() or GoSuManager:GetPercentHP(target2) <= self.KogMawMenu.Combo.HP:Value() then
@@ -1854,11 +1859,13 @@ end
 
 function KogMaw:Harass(target1, target2)
 	if target2 == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.KogMawMenu.Harass.MP:Value() then return end
-	if self.KogMawMenu.Harass.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target1, self.QData.range) then
-		self:UseQ(target1)
-	end
-	if self.KogMawMenu.Harass.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target1, self.EData.range) then
-		self:UseE(target1)
+	if target1 then
+		if self.KogMawMenu.Harass.UseQ:Value() and GoSuManager:IsReady(_Q) and GoSuManager:ValidTarget(target1, self.QData.range) then
+			self:UseQ(target1)
+		end
+		if self.KogMawMenu.Harass.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target1, self.EData.range) then
+			self:UseE(target1)
+		end
 	end
 	if GoSuManager:GetPercentMana(myHero) > self.KogMawMenu.Harass.MP:Value() and self.KogMawMenu.Harass.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target2, self.RRange) then
 		if GoSuManager:GetPercentHP(target2) > self.KogMawMenu.Harass.HP:Value() and (GoSuManager:GotBuff(myHero, "kogmawlivingartillerycost") + 1) <= self.KogMawMenu.Harass.MaxStacks:Value() then
