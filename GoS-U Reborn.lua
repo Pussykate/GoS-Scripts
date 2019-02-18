@@ -8,6 +8,9 @@
 
 	Changelog:
 
+	v1.0.9
+	+ Added Tristana
+
 	v1.0.8.2
 	+ Minor changes
 
@@ -106,9 +109,9 @@ local OnDraws = {Awareness = nil, BaseUlt = nil, Champion = nil, TargetSelector 
 local OnRecalls = {Awareness = nil, BaseUlt = nil}
 local OnTicks = {Champion = nil, Utility = nil}
 local BaseUltC = {["Ashe"] = true, ["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true}
-local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["Kaisa"] = true, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = true, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = true, ["Tristana"] = false, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
+local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["Kaisa"] = true, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = true, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = true, ["Tristana"] = true, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
 local Item_HK = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6, [ITEM_7] = HK_ITEM_7}
-local Version = "1.082"; local LuaVer = "1.0.8.2"
+local Version = "1.09"; local LuaVer = "1.0.9"
 local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.version"
 local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.lua"
 
@@ -531,8 +534,8 @@ local SpellData = {
 	},
 	["Tristana"] = {
 		[1] = {speed = 1100, range = 900, delay = 0.25, radius = 300, collision = false},
-		[2] = {range = 550},
-		[3] = {range = 550},
+		[2] = {range = 525},
+		[3] = {range = 525},
 	},
 	["Twitch"] = {
 		[1] = {speed = 1400, range = 950, delay = 0.25, radius = 300, collision = false},
@@ -2322,6 +2325,136 @@ function Sivir:OnProcessSpell()
 			end
 		end
 	end
+end
+
+--[[
+	┌┬┐┬─┐┬┌─┐┌┬┐┌─┐┌┐┌┌─┐
+	 │ ├┬┘│└─┐ │ ├─┤│││├─┤
+	 ┴ ┴└─┴└─┘ ┴ ┴ ┴┘└┘┴ ┴
+--]]
+
+class "Tristana"
+
+function Tristana:__init()
+	self.Target = nil
+	self.HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/0/06/TristanaSquare.png"
+	self.QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/4/4b/Rapid_Fire.png"
+	self.EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/1/1d/Explosive_Charge.png"
+	self.RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/f3/Buster_Shot.png"
+	self.WData = SpellData[myHero.charName][1]; self.EData = SpellData[myHero.charName][2]; self.RData = SpellData[myHero.charName][3]
+	self.TristanaMenu = MenuElement({type = MENU, id = "Tristana", name = "[GoS-U] Tristana", leftIcon = self.HeroIcon})
+	self.TristanaMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.TristanaMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Rapid Fire]", value = true, leftIcon = self.QIcon})
+	self.TristanaMenu.Combo:MenuElement({id = "UseE", name = "Use E [Explosive Charge]", value = true, leftIcon = self.EIcon})
+	self.TristanaMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.TristanaMenu.Harass:MenuElement({id = "UseQ", name = "Use Q [Rapid Fire]", value = true, leftIcon = self.QIcon})
+	self.TristanaMenu.Harass:MenuElement({id = "UseE", name = "Use E [Explosive Charge]", value = true, leftIcon = self.EIcon})
+	self.TristanaMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	self.TristanaMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
+	self.TristanaMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Buster Shot]", value = true, leftIcon = self.RIcon})
+	self.TristanaMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
+	self.TristanaMenu.AntiGapcloser:MenuElement({id = "UseR", name = "Use R [Buster Shot]", value = true, leftIcon = self.RIcon})
+	self.TristanaMenu.AntiGapcloser:MenuElement({id = "Distance", name = "Distance: E", value = 50, min = 25, max = 500, step = 25})
+	self.TristanaMenu:MenuElement({id = "Interrupter", name = "Interrupter", type = MENU})
+	self.TristanaMenu.Interrupter:MenuElement({id = "UseRDash", name = "Use R On Dashing Spells", value = false, leftIcon = self.EIcon})
+	self.TristanaMenu.Interrupter:MenuElement({id = "UseRChan", name = "Use R On Channeling Spells", value = true, leftIcon = self.RIcon})
+	self.TristanaMenu.Interrupter:MenuElement({id = "CSpells", name = "Channeling Spells", type = MENU})
+	self.TristanaMenu.Interrupter:MenuElement({id = "Distance", name = "Distance: R", value = self.RData.range, min = 100, max = 660, step = 25})
+	self.TristanaMenu.Interrupter:MenuElement({id = "Dng", name = "Minimum Danger Level To Cast", value = 3, min = 1, max = 3, step = 1})
+	self.TristanaMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
+	self.TristanaMenu.Drawings:MenuElement({id = "DrawW", name = "Draw W Range", value = true})
+	self.TristanaMenu.Drawings:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
+	self.TristanaMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
+	self.TristanaMenu.Drawings:MenuElement({id = "WRng", name = "W Range Color", color = DrawColor(192, 218, 112, 214)})
+	self.TristanaMenu.Drawings:MenuElement({id = "ERng", name = "E Range Color", color = DrawColor(192, 255, 140, 0)})
+	self.TristanaMenu.Drawings:MenuElement({id = "RRng", name = "R Range Color", color = DrawColor(192, 220, 20, 60)})
+	self.TristanaMenu:MenuElement({id = "blank", name = "GoS-U Reborn v"..LuaVer.."", type = SPACE})
+	self.TristanaMenu:MenuElement({id = "blank", name = "Author: Ark223", type = SPACE})
+	self.TristanaMenu:MenuElement({id = "blank", name = "Credits: gamsteron", type = SPACE})
+	self.Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
+	DelayAction(function()
+		for i, spell in pairs(ChanellingSpells) do
+			for j, hero in pairs(GoSuManager:GetEnemyHeroes()) do
+				if not ChanellingSpells[i] then return end
+				if spell.charName == hero.charName then
+					if not self.TristanaMenu.Interrupter.CSpells[i] then self.TristanaMenu.Interrupter.CSpells:MenuElement({id = i, name = ""..spell.charName.." "..self.Slot[spell.slot].." | "..spell.displayName, type = MENU}) end
+					self.TristanaMenu.Interrupter.CSpells[i]:MenuElement({id = "Detect"..i, name = "Detect Spell", value = true})
+					self.TristanaMenu.Interrupter.CSpells[i]:MenuElement({id = "Danger"..i, name = "Danger Level", value = (spell.danger or 1), min = 1, max = 3, step = 1})
+				end
+			end
+		end
+	end, 0.1)
+	OnDraws.Champion = function() self:Draw() end
+	OnTicks.Champion = function() self:Tick() end
+	_G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
+	_G.SDK.Orbwalker:OnPostAttackTick(function(...) self:OnPostAttackTick(...) end)
+end
+
+function Tristana:Tick()
+	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead) then return end
+	self:Auto2()
+	self.Range = myHero.range + myHero.boundingRadius * 1.5
+	self.ERange = self:GetSpellRange(_E); self.RRange = self:GetSpellRange(_R)
+	self.Target = Module.TargetSelector:GetTarget(self.ERange, nil)
+end
+
+function Tristana:Draw()
+	if self.TristanaMenu.Drawings.DrawW:Value() then DrawCircle(myHero.pos, self.WData.range, 1, self.TristanaMenu.Drawings.WRng:Value()) end
+	if self.TristanaMenu.Drawings.DrawE:Value() then DrawCircle(myHero.pos, self.ERange or self.EData.range, 1, self.TristanaMenu.Drawings.ERng:Value()) end
+	if self.TristanaMenu.Drawings.DrawR:Value() then DrawCircle(myHero.pos, self.RRange or self.RData.range, 1, self.TristanaMenu.Drawings.RRng:Value()) end
+end
+
+function Tristana:OnPreAttack(args)
+	if (self.TristanaMenu.Combo.UseQ:Value() and GoSuManager:GetOrbwalkerMode() == "Combo") or (GoSuManager:GetPercentMana(myHero) > self.TristanaMenu.Harass.MP:Value() and self.TristanaMenu.Harass.UseQ:Value() and GoSuManager:GetOrbwalkerMode() == "Harass") then
+		local target = Module.TargetSelector:GetTarget(self.Range, nil); args.Target = target; ControlCastSpell(HK_Q)
+	end
+end
+
+function Tristana:OnPostAttackTick(args)
+	if (self.TristanaMenu.Combo.UseE:Value() and GoSuManager:GetOrbwalkerMode() == "Combo") or (GoSuManager:GetPercentMana(myHero) > self.TristanaMenu.Harass.MP:Value() and self.TristanaMenu.Harass.UseE:Value() and GoSuManager:GetOrbwalkerMode() == "Harass") then
+		if self.Target and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(self.Target, self.ERange) then
+			ControlCastSpell(HK_E, self.Target.pos)
+		end
+	end
+end
+
+function Tristana:Auto2()
+	for i, enemy in pairs(GoSuManager:GetEnemyHeroes()) do
+		if GoSuManager:IsReady(_R) then
+			if self.TristanaMenu.AntiGapcloser.UseR:Value() and GoSuManager:ValidTarget(enemy, self.TristanaMenu.AntiGapcloser.Distance:Value()) then
+				ControlCastSpell(HK_R, enemy.pos)
+			end
+			if self.TristanaMenu.KillSteal.UseR:Value() and GoSuManager:ValidTarget(enemy, self.RRange) then
+				local RDmg = GoSuManager:GetDamage(enemy, 3, 0) * 9 / 10
+				if RDmg > enemy.health then
+					ControlCastSpell(HK_R, enemy.pos)
+				end
+			end
+			if GoSuManager:ValidTarget(enemy, self.TristanaMenu.Interrupter.Distance:Value()) then
+				if self.TristanaMenu.Interrupter.UseRChan:Value() then
+					if enemy.activeSpell and enemy.activeSpell.isChanneling then
+						local spell = enemy.activeSpell
+						if ChanellingSpells[spell.name] and self.TristanaMenu.Interrupter.CSpells[spell.name] and self.TristanaMenu.Interrupter.CSpells[spell.name]["Detect"..spell.name]:Value() then
+							if self.TristanaMenu.Interrupter.CSpells[spell.name]["Danger"..spell.name]:Value() >= self.TristanaMenu.Interrupter.Dng:Value() then
+								ControlCastSpell(HK_R, enemy.pos)
+							end
+						end
+					end
+				end
+				if self.TristanaMenu.Interrupter.UseRDash:Value() then
+					if enemy.pathing.isDashing and enemy.pathing.dashSpeed > 500 then
+						if GoSuGeometry:GetDistance(enemy.pos, myHero.pos) > GoSuGeometry:GetDistance(Vector(enemy.pathing.endPos), myHero.pos) then
+							ControlCastSpell(HK_R, enemy.pos)
+						end
+					end
+				end
+			end
+		end
+	end
+end
+
+function Tristana:GetSpellRange(slot)
+	return (slot == _E and 525 + 8 * myHero.levelData.lvl or 525 + (8 * (myHero.levelData.lvl - 1)))
 end
 
 --[[
