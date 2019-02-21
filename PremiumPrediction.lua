@@ -58,7 +58,7 @@ local u = table.insert
 local v = table.remove
 local w = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.version"
 local x = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua"
-local y = "1.12"
+local y = "1.13"
 
 function DownloadFile(z, A)
 	DownloadFileAsync(z, A, function() end)
@@ -145,7 +145,7 @@ function PremiumPrediction:MinionCollision(a3, a4, H, _, a5, S)
 			local a8, R = self:GetFastPrediction(a3, a7, H, a5)
 			if self:GetDistanceSqr(myHero.pos, a8) <= (_ + S) * (_ + S) then
 				local a9, aa, ab = self:VectorPointProjectionOnLineSegment(a3, a4, a8)
-				if self:GetDistanceSqr(aa, a8) <= (S + a7.boundingRadius + 15) ^ 2 or self:GetDistance(a3, a8) < a7.boundingRadius or self:GetDistance(a4, a8) < a7.boundingRadius then
+				if ab and self:GetDistanceSqr(a9, a8) <= (S + a7.boundingRadius + 15) ^ 2 or self:GetDistance(a3, a8) < a7.boundingRadius or self:GetDistance(a4, a8) < a7.boundingRadius then
 					return true
 				end
 			end
