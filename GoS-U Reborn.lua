@@ -103,7 +103,7 @@ local TableInsert = table.insert
 local TableRemove = table.remove
 local TableSort = table.sort
 
-local Allies = {}; local Enemies = {}; local Turrets = {}; local Units = {}
+local Allies, Enemies, Turrets, Units = {}, {}, {}, {}
 local Module = {Awareness = nil, BaseUlt = nil, Champion = nil, TargetSelector = nil, Utility = nil}
 local OnDraws = {Awareness = nil, BaseUlt = nil, Champion = nil, TargetSelector = nil}
 local OnRecalls = {Awareness = nil, BaseUlt = nil}
@@ -118,7 +118,7 @@ local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS
 local function OnProcessSpell()
 	for i = 1, #Units do
 		local unit = Units[i].unit; local last = Units[i].spell; local spell = unit.activeSpell
-		if spell and last ~= (spell.name .. spell.startTime) and unit.isChanneling then
+		if spell and last ~= (spell.name .. spell.startTime) and unit.activeSpell.isChanneling then
 			Units[i].spell = spell.name .. spell.startTime; return unit, spell
 		end
 	end
