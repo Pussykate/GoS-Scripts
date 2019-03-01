@@ -779,7 +779,7 @@ function GoSuManager:GetHeroesAround(pos, range, mode)
 	local range = range or MathHuge; local t = {}; local n = 0
 	for i = 1, (mode == "allies" and #Allies or #Enemies) do
 		local unit = mode == "allies" and Allies[i] or Enemies[i]
-		if unit and not unit.dead and GoSuGeometry:GetDistance(pos, unit.pos) <= range then
+		if unit and not unit.dead and unit.valid and GoSuGeometry:GetDistance(pos, unit.pos) <= range then
 			TableInsert(t, unit); n = n + 1
 		end
 	end
@@ -804,7 +804,7 @@ function GoSuManager:GetMinionsAround(pos, range, mode)
 	local range = range or MathHuge; local t = {}; local n = 0
 	for i = 1, GameMinionCount() do
 		local minion = GameMinion(i)
-		if minion and not minion.dead and GoSuGeometry:GetDistance(pos, minion.pos) <= range then
+		if minion and not minion.dead and minion.valid and GoSuGeometry:GetDistance(pos, minion.pos) <= range then
 			if mode == "allies" and minion.isAlly or minion.isEnemy then
 				TableInsert(t, minion); n = n + 1
 			end
@@ -839,7 +839,7 @@ end
 function GoSuManager:GotBuff(unit, buffname)
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
-		if buff.name == buffname and buff.count > 0 then return buff.count end
+		if buff and buff.name == buffname and buff.count > 0 then return buff.count end
 	end
 	return 0
 end
@@ -1343,8 +1343,8 @@ function Ashe:Auto2()
 			end
 			if GoSuManager:ValidTarget(enemy, self.AsheMenu.Interrupter.Distance:Value()) then
 				if self.AsheMenu.Interrupter.UseRChan:Value() then
-					if enemy.activeSpell and enemy.activeSpell.isChanneling then
-						local spell = enemy.activeSpell
+					local spell = enemy.activeSpell
+					if spell and spell.valid and spell.isChanneling then
 						if ChanellingSpells[spell.name] and self.AsheMenu.Interrupter.CSpells[spell.name] and self.AsheMenu.Interrupter.CSpells[spell.name]["Detect"..spell.name]:Value() then
 							if self.AsheMenu.Interrupter.CSpells[spell.name]["Danger"..spell.name]:Value() >= self.AsheMenu.Interrupter.Dng:Value() then
 								self:UseR(enemy, self.AsheMenu.Interrupter.Distance:Value())
@@ -2431,8 +2431,8 @@ function Tristana:Auto2()
 			end
 			if GoSuManager:ValidTarget(enemy, self.TristanaMenu.Interrupter.Distance:Value()) then
 				if self.TristanaMenu.Interrupter.UseRChan:Value() then
-					if enemy.activeSpell and enemy.activeSpell.isChanneling then
-						local spell = enemy.activeSpell
+					local spell = enemy.activeSpell
+					if spell and spell.valid and spell.isChanneling then
 						if ChanellingSpells[spell.name] and self.TristanaMenu.Interrupter.CSpells[spell.name] and self.TristanaMenu.Interrupter.CSpells[spell.name]["Detect"..spell.name]:Value() then
 							if self.TristanaMenu.Interrupter.CSpells[spell.name]["Danger"..spell.name]:Value() >= self.TristanaMenu.Interrupter.Dng:Value() then
 								ControlCastSpell(HK_R, enemy.pos)
@@ -2586,8 +2586,8 @@ function Vayne:Auto2()
 			end
 			if GoSuManager:ValidTarget(enemy, self.VayneMenu.Interrupter.Distance:Value()) then
 				if self.VayneMenu.Interrupter.UseEChan:Value() then
-					if enemy.activeSpell and enemy.activeSpell.isChanneling then
-						local spell = enemy.activeSpell
+					local spell = enemy.activeSpell
+					if spell and spell.valid and spell.isChanneling then
 						if ChanellingSpells[spell.name] and self.VayneMenu.Interrupter.CSpells[spell.name] and self.VayneMenu.Interrupter.CSpells[spell.name]["Detect"..spell.name]:Value() then
 							if self.VayneMenu.Interrupter.CSpells[spell.name]["Danger"..spell.name]:Value() >= self.VayneMenu.Interrupter.Dng:Value() then
 								ControlCastSpell(HK_E, enemy.pos)
