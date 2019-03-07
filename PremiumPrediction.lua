@@ -4,7 +4,7 @@
 	 / ___/ __/ -_)  ' \/ / // /  ' \/ ___/ __/ -_) _  / / __/ __/ / _ \/ _ \
 	/_/  /_/  \__/_/_/_/_/\_,_/_/_/_/_/  /_/  \__/\_,_/_/\__/\__/_/\___/_//_/
 
-	>> Generic prediction callbacks
+	-> Generic prediction callbacks
 
 	* GetFastPrediction(source, unit, speed, delay)
 	> return: PredPos, TimeToHit
@@ -14,14 +14,14 @@
 	* GetStandardPrediction(source, unit, speed, range, delay, radius, angle, collision)
 	> return: CastPos, PredPos, HitChance, TimeToHit
 
-	>> AOE prediction callbacks
+	-> AOE prediction callbacks
 
 	* GetLinearAOEPrediction(source, unit, speed, range, delay, radius, angle, collision)
 	* GetCircularAOEPrediction(source, unit, speed, range, delay, radius, angle, collision)
 	* GetConicAOEPrediction(source, unit, speed, range, delay, radius, angle, collision)
 	> return: CastPos, HitChance
 
-	>> Hitchances
+	-> Hitchances
 
 	-1             Minion or hero collision
 	0              Unit is out of range
@@ -58,7 +58,7 @@ local u = table.insert
 local v = table.remove
 local w = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.version"
 local x = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua"
-local y = "1.13"
+local y = "1.14"
 
 function DownloadFile(z, A)
 	DownloadFileAsync(z, A, function() end)
