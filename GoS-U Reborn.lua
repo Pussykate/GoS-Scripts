@@ -1233,7 +1233,7 @@ class "Ashe"
 
 function Ashe:__init()
 	self.Target1 = nil; self.Target2 = nil
-	self.HeroIcon = "https://d1u5p3l4wpay3k.cloudfront.net/lolesports_gamepedia_en/4/4a/AsheSquare.png"
+	self.HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/4/4a/AsheSquare.png"
 	self.QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/2/2a/Ranger%27s_Focus_2.png"
 	self.WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/5/5d/Volley.png"
 	self.EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e3/Hawkshot.png"
