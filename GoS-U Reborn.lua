@@ -8,6 +8,9 @@
 
 	Changelog:
 
+	v1.1.1
+	+ Fixed BaseUlt
+
 	v1.1
 	+ Updated Kayle and Morgana spell data
 
@@ -114,7 +117,7 @@ local OnTicks = {Champion = nil, Utility = nil}
 local BaseUltC = {["Ashe"] = true, ["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true}
 local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["Kaisa"] = true, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = true, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = true, ["Tristana"] = true, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
 local Item_HK = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6, [ITEM_7] = HK_ITEM_7}
-local Version = "1.1"; local LuaVer = "1.1"
+local Version = "1.11"; local LuaVer = "1.1.1"
 local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.version"
 local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.lua"
 
@@ -999,7 +1002,6 @@ function GoSuBaseUlt:Tick()
 	if GoSuManager:IsReady(_R) then
 		for i, enemy in pairs(GoSuManager:GetEnemyHeroes()) do
 			local recall = self.RecallData[enemy.charName]
-			if not enemy.visible then recall.missing = GameTimer() end
 			if recall.isRecalling then
 				local FirstStage = enemy.health <= GoSuManager:GetDamage(enemy, 3, 0)
 				if FirstStage then DrawText("Possible BaseUlt!", 35, myHero.pos2D.x-85, myHero.pos2D.y+20, DrawColor(192, 220, 20, 60)) end
@@ -1007,10 +1009,10 @@ function GoSuBaseUlt:Tick()
 				local HitTime = self:CalculateTravelTime()
 				if (HitTime - RecallTime) > 0 then
 					local PredictedHealth = enemy.health + enemy.hpRegen * HitTime
-					if not enemy.visible then PredictedHealth = PredictedHealth + enemy.hpRegen * (GameTimer() - recall.missing) end
+					if not enemy.visible then PredictedHealth = PredictedHealth + enemy.hpRegen * HitTime end
 					if PredictedHealth + enemy.maxHealth * 0.021 <= GoSuManager:GetDamage(enemy, 3, 0) then
-						local BasePos = self.EnemyBase.pos:ToMM()
-						ControlCastSpell(HK_R, BasePos.x, BasePos.y)
+						local BasePos = myHero.pos:Extended(self.EnemyBase.pos, 1000)
+						ControlCastSpell(HK_R, BasePos)
 					end
 				end
 			end
