@@ -1,37 +1,3 @@
---[[
-	   ___                _            ___             ___     __  _         
-	  / _ \_______ __ _  (_)_ ____ _  / _ \_______ ___/ (_)___/ /_(_)__  ___ 
-	 / ___/ __/ -_)  ' \/ / // /  ' \/ ___/ __/ -_) _  / / __/ __/ / _ \/ _ \
-	/_/  /_/  \__/_/_/_/_/\_,_/_/_/_/_/  /_/  \__/\_,_/_/\__/\__/_/\___/_//_/
-
-	-> Generic prediction callbacks
-
-	* GetFastPrediction(source, unit, speed, delay)
-	> return: PredPos, TimeToHit
-	* GetPrediction(source, unit, speed, range, delay, radius, angle, collision)
-	* GetDashPrediction(source, unit, speed, range, delay, radius, collision)
-	* GetImmobilePrediction(source, unit, speed, range, delay, radius, collision)
-	* GetStandardPrediction(source, unit, speed, range, delay, radius, angle, collision)
-	> return: CastPos, PredPos, HitChance, TimeToHit
-
-	-> AOE prediction callbacks
-
-	* GetLinearAOEPrediction(source, unit, speed, range, delay, radius, angle, collision)
-	* GetCircularAOEPrediction(source, unit, speed, range, delay, radius, angle, collision)
-	* GetConicAOEPrediction(source, unit, speed, range, delay, radius, angle, collision)
-	> return: CastPos, HitChance
-
-	-> Hitchances
-
-	-1             Minion or hero collision
-	0              Unit is out of range
-	0.1 - 0.24     Low accuracy
-	0.25 - 0.49    Medium accuracy
-	0.50 - 0.74    High accuracy
-	0.75 - 0.99    Very high accuracy
-	1              Unit is immobile or dashing
-
---]]
 
 local a = Game.Latency
 local b = Game.Timer
@@ -58,7 +24,7 @@ local u = table.insert
 local v = table.remove
 local w = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.version"
 local x = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/PremiumPrediction.lua"
-local y = "1.14"
+local y = "1.15"
 
 function DownloadFile(z, A)
 	DownloadFileAsync(z, A, function() end)
