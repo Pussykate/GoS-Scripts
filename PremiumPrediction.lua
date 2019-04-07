@@ -21,7 +21,7 @@
 
 	-> Hitchances
 
-	-1             Minion or hero collision
+	-1             Minion or wall collision
 	0              Unit is out of range
 	0.1 - 0.24     Low accuracy
 	0.25 - 0.49    Medium accuracy
