@@ -917,10 +917,12 @@ function GoSuAwareness:__init()
 end
 
 function GoSuAwareness:ProcessRecall(unit, recall)
-	if unit.team ~= myHero.team then
-		if recall.isStart then print(unit.charName.." started recalling at " ..MathCeil(unit.health).. "HP")
-		elseif recall.isFinish then print(unit.charName.." successfully recalled!")
-		else print(unit.charName.." canceled recalling!") end
+	if self.AwarenessMenu.Recall:Value() then
+		if unit.team ~= myHero.team then
+			if recall.isStart then print(unit.charName.." started recalling at " ..MathCeil(unit.health).. "HP")
+			elseif recall.isFinish then print(unit.charName.." successfully recalled!")
+			else print(unit.charName.." canceled recalling!") end
+		end
 	end
 end
 
