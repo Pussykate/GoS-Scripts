@@ -759,7 +759,7 @@ function GoSuManager:GetAllyHeroes()
 end
 
 function GoSuManager:GetCastLevel(unit, slot)
-	return unit:GetSpellData(slot).level or 1
+	return unit:GetSpellData(slot).level == 0 and 1 or unit:GetSpellData(slot).level
 end
 
 function GoSuManager:GetCastRange(unit, spell)
