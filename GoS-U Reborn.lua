@@ -8,6 +8,9 @@
 
 	Changelog:
 
+	v1.1.2
+	+ Added Jinx
+
 	v1.1.1
 	+ Fixed BaseUlt
 
@@ -115,9 +118,9 @@ local OnDraws = {Awareness = nil, BaseUlt = nil, Champion = nil, TargetSelector 
 local OnRecalls = {Awareness = nil, BaseUlt = nil}
 local OnTicks = {Champion = nil, Utility = nil}
 local BaseUltC = {["Ashe"] = true, ["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true}
-local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = false, ["Kaisa"] = true, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = true, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = true, ["Tristana"] = true, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
+local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = true, ["Kaisa"] = true, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = true, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = true, ["Tristana"] = true, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
 local Item_HK = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6, [ITEM_7] = HK_ITEM_7}
-local Version = "1.11"; local LuaVer = "1.1.1"
+local Version = "1.12"; local LuaVer = "1.1.2"
 local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.version"
 local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.lua"
 
@@ -1303,7 +1306,7 @@ end
 function Ashe:Tick()
 	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead) then return end
 	self:Auto2()
-	self.Range = myHero.range + myHero.boundingRadius * 1.5
+	self.Range = myHero.range + myHero.boundingRadius * 2
 	self.Target1 = Module.TargetSelector:GetTarget(self.WData.range, nil)
 	self.Target2 = Module.TargetSelector:GetTarget(self.AsheMenu.Combo.Distance:Value(), nil)
 	if self.Target2 == nil then return end
@@ -1478,7 +1481,7 @@ function Ezreal:Tick()
 	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead) then return end
 	self:Auto2()
 	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear() end
-	self.Range = myHero.range + myHero.boundingRadius * 1.5
+	self.Range = myHero.range + myHero.boundingRadius * 2
 	self.Target1 = Module.TargetSelector:GetTarget(self.QData.range, nil)
 	self.Target2 = Module.TargetSelector:GetTarget(self.EzrealMenu.Combo.Distance:Value(), nil)
 	if self.Target2 == nil then return end
@@ -1602,6 +1605,167 @@ function Ezreal:UseR(target, range)
 end
 
 --[[
+	 ┬┬┌┐┌─┐ ┬
+	 │││││┌┴┬┘
+	└┘┴┘└┘┴ └─
+--]]
+
+class "Jinx"
+
+function Jinx:__init()
+	self.Target = nil; self.Target1 = nil; self.Target2 = nil
+	self.BonusRange = {75, 100, 125, 150, 175}
+	self.HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/e/e2/JinxSquare.png"
+	self.QIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/4/4d/Pow-Pow.png"
+	self.WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/7/76/Zap%21.png"
+	self.EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/b/bb/Flame_Chompers%21.png"
+	self.RIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/a/a8/Super_Mega_Death_Rocket%21.png"
+	self.WData = SpellData[myHero.charName][1]; self.EData = SpellData[myHero.charName][2]; self.RData = SpellData[myHero.charName][3]
+	self.JinxMenu = MenuElement({type = MENU, id = "Jinx", name = "[GoS-U] Jinx", leftIcon = self.HeroIcon})
+	self.JinxMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.JinxMenu.Combo:MenuElement({id = "UseQ", name = "Use Q [Switcheroo!]", value = true, leftIcon = self.QIcon})
+	self.JinxMenu.Combo:MenuElement({id = "UseW", name = "Use W [Zap!]", value = true, leftIcon = self.WIcon})
+	self.JinxMenu.Combo:MenuElement({id = "UseE", name = "Use E [Flame Chompers!]", value = true, leftIcon = self.EIcon})
+	self.JinxMenu.Combo:MenuElement({id = "UseR", name = "Use R [Super Mega Death Rocket!]", value = true, leftIcon = self.RIcon})
+	self.JinxMenu.Combo:MenuElement({id = "ModeW", name = "Cast Mode: W", drop = {"Standard", "Out Of AA"}, value = 2})
+	self.JinxMenu.Combo:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = self.WData.range, max = 5000, step = 50})
+	self.JinxMenu.Combo:MenuElement({id = "X", name = "Minimum Enemies: R", value = 2, min = 0, max = 5, step = 1})
+	self.JinxMenu.Combo:MenuElement({id = "HP", name = "HP-Manager: R", value = 40, min = 0, max = 100, step = 5})
+	self.JinxMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.JinxMenu.Harass:MenuElement({id = "UseQ", name = "Use Q [Switcheroo!]", value = true, leftIcon = self.QIcon})
+	self.JinxMenu.Harass:MenuElement({id = "UseW", name = "Use W [Zap!]", value = true, leftIcon = self.WIcon})
+	self.JinxMenu.Harass:MenuElement({id = "UseE", name = "Use E [Flame Chompers!]", value = false, leftIcon = self.EIcon})
+	self.JinxMenu.Harass:MenuElement({id = "ModeW", name = "Cast Mode: W", drop = {"Standard", "Out Of AA"}, value = 1})
+	self.JinxMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	self.JinxMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
+	self.JinxMenu.KillSteal:MenuElement({id = "UseR", name = "Use R [Super Mega Death Rocket!]", value = true, leftIcon = self.RIcon})
+	self.JinxMenu.KillSteal:MenuElement({id = "Distance", name = "Distance: R", value = 2000, min = self.WData.range, max = 5000, step = 50})
+	self.JinxMenu:MenuElement({id = "AntiGapcloser", name = "Anti-Gapcloser", type = MENU})
+	self.JinxMenu.AntiGapcloser:MenuElement({id = "UseE", name = "Use E [Flame Chompers!]", value = true, leftIcon = self.EIcon})
+	self.JinxMenu.AntiGapcloser:MenuElement({id = "Distance", name = "Distance: E", value = 100, min = 25, max = 500, step = 25})
+	self.JinxMenu:MenuElement({id = "HitChance", name = "HitChance", type = MENU})
+	self.JinxMenu.HitChance:MenuElement({id = "HCW", name = "HitChance: W", value = 35, min = 0, max = 100, step = 1})
+	self.JinxMenu.HitChance:MenuElement({id = "HCE", name = "HitChance: E", value = 60, min = 0, max = 100, step = 1})
+	self.JinxMenu.HitChance:MenuElement({id = "HCR", name = "HitChance: R", value = 30, min = 0, max = 100, step = 1})
+	self.JinxMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
+	self.JinxMenu.Drawings:MenuElement({id = "DrawW", name = "Draw W Range", value = true})
+	self.JinxMenu.Drawings:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
+	self.JinxMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
+	self.JinxMenu.Drawings:MenuElement({id = "WRng", name = "W Range Color", color = DrawColor(192, 218, 112, 214)})
+	self.JinxMenu.Drawings:MenuElement({id = "ERng", name = "E Range Color", color = DrawColor(192, 255, 140, 0)})
+	self.JinxMenu.Drawings:MenuElement({id = "RRng", name = "R Range Color", color = DrawColor(192, 220, 20, 60)})
+	self.JinxMenu:MenuElement({id = "blank", name = "GoS-U Reborn v"..LuaVer.."", type = SPACE})
+	self.JinxMenu:MenuElement({id = "blank", name = "Author: Ark223", type = SPACE})
+	self.JinxMenu:MenuElement({id = "blank", name = "Credits: gamsteron", type = SPACE})
+	OnDraws.Champion = function() self:Draw() end
+	OnTicks.Champion = function() self:Tick() end
+	_G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
+end
+
+function Jinx:Tick()
+	if (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead then return end
+	self:Auto2()
+	self.Range = myHero.range + myHero.boundingRadius * 2
+	self.Target = Module.TargetSelector:GetTarget(self.Range, nil)
+	self.Target1 = Module.TargetSelector:GetTarget(self.WData.range, nil)
+	self.Target2 = Module.TargetSelector:GetTarget(self.JinxMenu.Combo.Distance:Value(), nil)
+	if self.Target2 == nil then return end
+	if GoSuManager:GetOrbwalkerMode() == "Combo" then Module.Utility:Tick(); self:Combo(self.Target1, self.Target2, self.Target)
+	elseif GoSuManager:GetOrbwalkerMode() == "Harass" then self:Harass(self.Target1, self.Target) end
+end
+
+function Jinx:Draw()
+	if self.JinxMenu.Drawings.DrawW:Value() then DrawCircle(myHero.pos, self.WData.range, 1, self.JinxMenu.Drawings.WRng:Value()) end
+	if self.JinxMenu.Drawings.DrawE:Value() then DrawCircle(myHero.pos, self.EData.range, 1, self.JinxMenu.Drawings.ERng:Value()) end
+	if self.JinxMenu.Drawings.DrawR:Value() then DrawCircle(myHero.pos, self.JinxMenu.Combo.Distance:Value(), 1, self.JinxMenu.Drawings.RRng:Value()) end
+end
+
+function Jinx:OnPreAttack(args)
+	if GoSuManager:GetOrbwalkerMode() == "Combo" or GoSuManager:GetOrbwalkerMode() == "Harass" then
+		args.Target = self.Target
+	end
+end
+
+function Jinx:Auto2()
+	for i, enemy in pairs(GoSuManager:GetEnemyHeroes()) do
+		if enemy then
+			if GoSuManager:IsReady(_E) and self.JinxMenu.AntiGapcloser.UseE:Value() and GoSuManager:ValidTarget(enemy, self.JinxMenu.AntiGapcloser.Distance:Value()) then
+				self:UseE(enemy, self.JinxMenu.AntiGapcloser.Distance:Value())
+			end
+			if GoSuManager:IsReady(_R) and self.JinxMenu.KillSteal.UseR:Value() and GoSuManager:ValidTarget(enemy, self.JinxMenu.KillSteal.Distance:Value()) then
+				local RDmg = GoSuManager:GetDamage(enemy, 3, 0)
+				if RDmg > enemy.health then
+					self:UseR(enemy, self.JinxMenu.KillSteal.Distance:Value())
+				end
+			end
+		end
+	end
+end
+
+function Jinx:Combo(target1, target2, target3)
+	if target2 == nil or myHero.attackData.state == 2 then return end
+	if target3 and GoSuManager:IsReady(_Q) and self.JinxMenu.Combo.UseQ:Value() then
+		local dist = GoSuGeometry:GetDistance(myHero.pos, target3.pos)
+		if dist > 590 and not self:HasQ2() or (dist < 590 and self:HasQ2()) then
+			ControlCastSpell(HK_Q)
+		end
+	end
+	if target1 then
+		if GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target1, self.WData.range) and self.JinxMenu.Combo.UseW:Value() then
+			if self.JinxMenu.Combo.ModeW:Value() == 2 and GoSuGeometry:GetDistance(myHero.pos, target1.pos) > self.Range or self.JinxMenu.Combo.ModeW:Value() == 1 then
+				self:UseW(target1)
+			end
+		end
+		if GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target1, self.EData.range) and self.JinxMenu.Combo.UseE:Value() then
+			self:UseE(target1)
+		end
+	end
+	if self.JinxMenu.Combo.UseR:Value() and GoSuManager:IsReady(_R) and GoSuManager:ValidTarget(target2, self.JinxMenu.Combo.Distance:Value()) then
+		local enemies, count = GoSuManager:GetHeroesAround(myHero.pos, self.JinxMenu.Combo.Distance:Value())
+		if GoSuManager:GetPercentHP(target2) < self.JinxMenu.Combo.HP:Value() and count >= self.JinxMenu.Combo.X:Value() then			
+			self:UseR(target2, self.JinxMenu.Combo.Distance:Value())
+		end
+	end
+end
+
+function Jinx:Harass(target1, target2)
+	if target1 == nil or GoSuManager:GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() or myHero.attackData.state == 2 then return end
+	if target2 and GoSuManager:IsReady(_Q) and self.JinxMenu.Harass.UseQ:Value() then
+		local dist = GoSuGeometry:GetDistance(myHero.pos, target2.pos)
+		if dist > 590 and not self:HasQ2() or (dist < 590 and self:HasQ2()) then
+			ControlCastSpell(HK_Q)
+		end
+	end
+	if GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target1, self.WData.range) and self.JinxMenu.Harass.UseW:Value() then
+		if self.JinxMenu.Harass.ModeW:Value() == 2 and GoSuGeometry:GetDistance(myHero.pos, target1.pos) > self.Range or self.JinxMenu.Harass.ModeW:Value() == 1 then
+			self:UseW(target1)
+		end
+	end
+	if GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target1, self.EData.range) and self.JinxMenu.Harass.UseE:Value() then
+		self:UseE(target1)
+	end
+end
+
+function Jinx:HasQ2()
+	return myHero:GetSpellData(_Q).toggleState == 2
+end
+
+function Jinx:UseW(target)
+	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.WData.speed, self.WData.range, self.WData.delay, self.WData.radius, nil, self.WData.collision)
+	if CastPos and HitChance >= (self.JinxMenu.HitChance.HCW:Value() / 100) then ControlCastSpell(HK_W, CastPos) end
+end
+
+function Jinx:UseE(target)
+	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.EData.speed, self.EData.range, self.EData.delay, self.EData.radius, nil, self.EData.collision)
+	if CastPos and HitChance >= (self.JinxMenu.HitChance.HCE:Value() / 100) then ControlCastSpell(HK_E, PredPos) end
+end
+
+function Jinx:UseR(target, range)
+	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.RData.speed, range, self.RData.delay, self.RData.radius, nil, self.RData.collision)
+	if CastPos and HitChance >= (self.JinxMenu.HitChance.HCR:Value() / 100) then ControlCastSpell(HK_R, myHero.pos:Extended(CastPos, 1000)) end
+end
+
+--[[
 	┬┌─┌─┐┬┌─┐┌─┐
 	├┴┐├─┤│└─┐├─┤
 	┴ ┴┴ ┴┴└─┘┴ ┴
@@ -1652,7 +1816,7 @@ function Kaisa:Tick()
 	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead or GoSuManager:GotBuff(myHero, "KaisaE") > 0) then return end
 	self:Auto2()
 	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear() end
-	self.Range = myHero.range + myHero.boundingRadius * 1.5
+	self.Range = myHero.range + myHero.boundingRadius * 2
 	self.Target1 = Module.TargetSelector:GetTarget(self.QData.range, nil)
 	self.Target2 = Module.TargetSelector:GetTarget(self.WData.range, nil)
 	if self.Target2 == nil then return end
@@ -1796,7 +1960,7 @@ function KogMaw:Tick()
 	self.RRange = GoSuManager:GetCastRange(myHero, _R)
 	self:Auto2()
 	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear() end
-	self.AARange = myHero.range + myHero.boundingRadius * 1.5
+	self.AARange = myHero.range + myHero.boundingRadius * 2
 	self.Target1 = Module.TargetSelector:GetTarget(self.EData.range, nil)
 	self.Target2 = Module.TargetSelector:GetTarget(self.RRange, nil)
 	if self.Target2 == nil then return end
@@ -1996,7 +2160,7 @@ function Lucian:Tick()
 	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead) then return end
 	self:Auto2()
 	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear() end
-	self.Range = myHero.range + myHero.boundingRadius * 1.5
+	self.Range = myHero.range + myHero.boundingRadius * 2
 	self.Target = Module.TargetSelector:GetTarget(self.WData.range, nil)
 	if self.Target == nil then return end
 	if GoSuManager:GetOrbwalkerMode() == "Combo" then Module.Utility:Tick(); self:Combo(self.Target)
@@ -2196,7 +2360,7 @@ function Sivir:Tick()
 	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead) then return end
 	self:Auto2()
 	if GoSuManager:GetOrbwalkerMode() == "Clear" then self:LaneClear() end
-	self.Range = myHero.range + myHero.boundingRadius * 1.5
+	self.Range = myHero.range + myHero.boundingRadius * 2
 	self.Target = Module.TargetSelector:GetTarget(self.QData.range, nil)
 	if self.Target == nil then return end
 	if GoSuManager:GetOrbwalkerMode() == "Combo" then Module.Utility:Tick(); self:Combo(self.Target)
@@ -2399,7 +2563,7 @@ end
 function Tristana:Tick()
 	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead) then return end
 	self:Auto2()
-	self.Range = myHero.range + myHero.boundingRadius * 1.5
+	self.Range = myHero.range + myHero.boundingRadius * 2
 	self.ERange = self:GetSpellRange(_E); self.RRange = self:GetSpellRange(_R)
 	self.Target = Module.TargetSelector:GetTarget(self.ERange, nil)
 end
@@ -2543,7 +2707,7 @@ function Vayne:Tick()
 		_G.SDK.Orbwalker:__OnAutoAttackReset(); self.Timer = GameTimer()
 	end
 	self:Auto2()
-	self.Range = myHero.range + myHero.boundingRadius * 1.5
+	self.Range = myHero.range + myHero.boundingRadius * 2
 	self.Target = Module.TargetSelector:GetTarget(self.Range + self.QData.range, nil)
 	if self.Target == nil then return end
 	if GoSuManager:GetOrbwalkerMode() == "Combo" then Module.Utility:Tick(); self:Combo(self.Target)
