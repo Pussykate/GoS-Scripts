@@ -1731,7 +1731,7 @@ function Jinx:Combo(target1, target2, target3)
 end
 
 function Jinx:Harass(target1, target2)
-	if target1 == nil or GoSuManager:GetPercentMana(myHero) > self.JinxMenu.Harass.MP:Value() or myHero.attackData.state == 2 then return end
+	if target1 == nil or GoSuManager:GetPercentMana(myHero) <= self.JinxMenu.Harass.MP:Value() or myHero.attackData.state == 2 then return end
 	if target2 and GoSuManager:IsReady(_Q) and self.JinxMenu.Harass.UseQ:Value() then
 		local dist = GoSuGeometry:GetDistance(myHero.pos, target2.pos)
 		if dist > 590 and not self:HasQ2() or (dist < 590 and self:HasQ2()) then
