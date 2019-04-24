@@ -1666,7 +1666,7 @@ function Jinx:Tick()
 	if (_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead then return end
 	self:Auto2()
 	self.Range = myHero.range + myHero.boundingRadius * 2
-	self.Target = Module.TargetSelector:GetTarget(self.Range, nil)
+	self.Target = Module.TargetSelector:GetTarget(655 + self.BonusRange[GoSuManager:GetCastLevel(myHero, _Q)], nil)
 	self.Target1 = Module.TargetSelector:GetTarget(self.WData.range, nil)
 	self.Target2 = Module.TargetSelector:GetTarget(self.JinxMenu.Combo.Distance:Value(), nil)
 	if self.Target2 == nil then return end
