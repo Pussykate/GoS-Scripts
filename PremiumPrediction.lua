@@ -31,7 +31,7 @@
 
 --]]
 
-local a = "2.0"
+local a = "2.01"
 require("MapPositionGOS")
 local b, c, d, e, f, g = Game.Latency, Game.Timer, Game.HeroCount, Game.Hero, Game.MinionCount, Game.Minion
 local h, i, j, k, l, m, n, o, p, q, r, s, t, u, v = math.abs, math.atan, math.atan2, math.acos, math.ceil, math.cos, math.deg, math.floor, math.huge, math.max, math.min, math.pi, math.rad, math.sin, math.sqrt
@@ -269,7 +269,7 @@ function PremiumPrediction:IsMinionCollision(N, aq, P, ar, as, ah)
 			local ad, av = self:GetFastPrediction(N, au, P, as)
 			if ad and self:GetDistanceSqr(at, ad) <= (ar + ah) * (ar + ah) then
 				local aw, ax, ay = self:VectorPointProjectionOnLineSegment(at, aq, ad)
-				if ay and self:GetDistanceSqr(aw, ad) <= (ah + au.boundingRadius * 1.5) ^ 2 or self:GetDistance(aq, ad) < au.boundingRadius or self:GetDistance(at, ad) < au.boundingRadius then
+				if self:GetDistanceSqr(aw, ad) <= (ah + au.boundingRadius * 1.5) ^ 2 or self:GetDistance(aq, ad) < au.boundingRadius or self:GetDistance(at, ad) < au.boundingRadius then
 					return true
 				end
 			end
