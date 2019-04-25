@@ -513,7 +513,7 @@ local SpellData = {
 	},
 	["Jinx"] = {
 		[1] = {speed = 3300, range = 1450, delay = 0.5, radius = 60, collision = true},
-		[2] = {speed = 1750, range = 900, delay = 0, radius = 120, collision = true},
+		[2] = {speed = 1750, range = 900, delay = 0, radius = 120, collision = false},
 		[3] = {speed = 1700, delay = 0.6, radius = 140, collision = false},
 	},
 	["Kaisa"] = {
