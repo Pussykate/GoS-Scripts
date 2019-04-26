@@ -2701,7 +2701,8 @@ function Twitch:Auto2()
 			if self.VenomData[NID] == nil then self.VenomData[NID] = {timer = 0, stacks = 0} end
 			local stacks = self:GetEStacks(enemy)
 			if GoSuManager:IsReady(_E) and stacks > 0 then
-				local EDmg = GoSuManager:CalcPhysicalDamage(myHero, enemy, ((({20, 30, 40, 50, 60})[GoSuManager:GetCastLevel(myHero, _E)]) + ((stacks * (({15, 20, 25, 30, 35})[GoSuManager:GetCastLevel(myHero, _E)]) + 0.35 * myHero.bonusDamage + 0.2 * myHero.ap)))) * self.TwitchMenu.KillSteal.DCR:Value()
+				print(GoSuManager:GetCastLevel(myHero, _E))
+				local EDmg = GoSuManager:CalcPhysicalDamage(myHero, enemy, ((({20, 30, 40, 50, 60})[GoSuManager:GetCastLevel(myHero, _E)]) + ((stacks * ((({15, 20, 25, 30, 35})[GoSuManager:GetCastLevel(myHero, _E)]) + 0.35 * myHero.bonusDamage + 0.2 * myHero.ap))))) * self.TwitchMenu.KillSteal.DCR:Value()
 				if EDmg > enemy.health then ControlCastSpell(HK_E) end
 			end
 		end
