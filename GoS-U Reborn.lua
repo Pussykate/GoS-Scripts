@@ -2744,7 +2744,7 @@ end
 
 function Twitch:UseW(target)
 	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.WData.speed, self.WData.range, self.WData.delay, self.WData.radius, nil, self.WData.collision)
-	if CastPos and HitChance >= (self.TwitchMenu.HitChance.HCW:Value() / 100) then ControlCastSpell(HK_W, CastPos) end
+	if CastPos and HitChance >= (self.TwitchMenu.HitChance.HCW:Value() / 100) then ControlCastSpell(HK_W, PredPos) end
 end
 
 --[[
