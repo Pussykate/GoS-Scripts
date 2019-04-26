@@ -2653,6 +2653,7 @@ function Twitch:__init()
 	self.TwitchMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
 	self.TwitchMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
 	self.TwitchMenu.KillSteal:MenuElement({id = "UseE", name = "Use E [Contaminate]", value = true, leftIcon = self.EIcon})
+	self.TwitchMenu.KillSteal:MenuElement({id = "DCR", name = "Damage Calc Ratio", value = 0.95, min = 0.01, max = 1, step = 0.01})
 	self.TwitchMenu:MenuElement({id = "HitChance", name = "HitChance", type = MENU})
 	self.TwitchMenu.HitChance:MenuElement({id = "HCW", name = "HitChance: W", value = 40, min = 0, max = 100, step = 1})
 	self.TwitchMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
@@ -2698,9 +2699,9 @@ function Twitch:Auto2()
 		if self.TwitchMenu.KillSteal.UseE:Value() and GoSuManager:ValidTarget(enemy, self.EData.range) then
 			local NID = enemy.networkID
 			if self.VenomData[NID] == nil then self.VenomData[NID] = {timer = 0, stacks = 0} end
-			local stacks = self:GetEStacks(enemy, NID)
+			local stacks = self:GetEStacks(enemy)
 			if GoSuManager:IsReady(_E) and stacks > 0 then
-				local EDmg = GoSuManager:CalcPhysicalDamage(myHero, enemy, ((({20, 30, 40, 50, 60})[GoSuManager:GetCastLevel(myHero, _E)]) + ((stacks * (({15, 20, 25, 30, 35})[GoSuManager:GetCastLevel(myHero, _E)]) + 0.35 * myHero.bonusDamage + 0.2 * myHero.ap)))) * 9.5 / 10
+				local EDmg = GoSuManager:CalcPhysicalDamage(myHero, enemy, ((({20, 30, 40, 50, 60})[GoSuManager:GetCastLevel(myHero, _E)]) + ((stacks * (({15, 20, 25, 30, 35})[GoSuManager:GetCastLevel(myHero, _E)]) + 0.35 * myHero.bonusDamage + 0.2 * myHero.ap)))) * self.TwitchMenu.KillSteal.DCR:Value()
 				if EDmg > enemy.health then ControlCastSpell(HK_E) end
 			end
 		end
@@ -2721,7 +2722,8 @@ function Twitch:Harass(target)
 	end
 end
 
-function Twitch:GetEStacks(unit, id)
+function Twitch:GetEStacks(unit)
+	local id = unit.networkID
 	for i = 0, unit.buffCount do
 		local buff = unit:GetBuff(i)
 		if buff and buff.name == "TwitchDeadlyVenom" and buff.count > 0 and GameTimer() < buff.expireTime then
