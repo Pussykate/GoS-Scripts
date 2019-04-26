@@ -8,6 +8,9 @@
 
 	Changelog:
 
+	v1.1.3
+	+ Added Twitch
+
 	v1.1.2
 	+ Added Jinx
 
@@ -118,9 +121,9 @@ local OnDraws = {Awareness = nil, BaseUlt = nil, Champion = nil, TargetSelector 
 local OnRecalls = {Awareness = nil, BaseUlt = nil}
 local OnTicks = {Champion = nil, Utility = nil}
 local BaseUltC = {["Ashe"] = true, ["Draven"] = true, ["Ezreal"] = true, ["Jinx"] = true}
-local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = true, ["Kaisa"] = true, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = true, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = true, ["Tristana"] = true, ["Twitch"] = false, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
+local Champions = {["Ashe"] = true, ["Caitlyn"] = false, ["Corki"] = false, ["Draven"] = false, ["Ezreal"] = true, ["Jhin"] = false, ["Jinx"] = true, ["Kaisa"] = true, ["Kalista"] = false, ["KogMaw"] = true, ["Lucian"] = true, ["MissFortune"] = false, ["Quinn"] = false, ["Sivir"] = true, ["Tristana"] = true, ["Twitch"] = true, ["Varus"] = false, ["Vayne"] = true, ["Xayah"] = false}
 local Item_HK = {[ITEM_1] = HK_ITEM_1, [ITEM_2] = HK_ITEM_2, [ITEM_3] = HK_ITEM_3, [ITEM_4] = HK_ITEM_4, [ITEM_5] = HK_ITEM_5, [ITEM_6] = HK_ITEM_6, [ITEM_7] = HK_ITEM_7}
-local Version = "1.12"; local LuaVer = "1.1.2"
+local Version = "1.13"; local LuaVer = "1.1.3"
 local VerSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.version"
 local LuaSite = "https://raw.githubusercontent.com/Ark223/GoS-Scripts/master/GoS-U%20Reborn.lua"
 
@@ -471,9 +474,6 @@ local DamageTable = {
 	["Tristana"] = {
 		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcMagicalDamage(myHero, target, (({300, 400, 500})[GoSuManager:GetCastLevel(myHero, _R)] + myHero.ap)) end},
 	},
-	["Twitch"] = {
-		{slot = 3, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, ((({20, 30, 40, 50, 60})[GoSuManager:GetCastLevel(myHero, _E)]) + ((GoSuManager:GotBuff(target, "twitchdeadlyvenom") * (({15, 20, 25, 30, 35})[GoSuManager:GetCastLevel(myHero, _E)]) + 0.35 * myHero.bonusDamage + 0.2 * myHero.ap)))) end},
-	},
 	["Vayne"] = {
 		{slot = 2, state = 0, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({50, 85, 120, 155, 190})[GoSuManager:GetCastLevel(myHero, _E)] + 0.5 * myHero.bonusDamage)) end},
 		{slot = 2, state = 1, damage = function(target) return GoSuManager:CalcPhysicalDamage(myHero, target, (({100, 170, 240, 310, 380})[GoSuManager:GetCastLevel(myHero, _E)] + myHero.bonusDamage)) end},
@@ -550,6 +550,7 @@ local SpellData = {
 	},
 	["Twitch"] = {
 		[1] = {speed = 1400, range = 950, delay = 0.25, radius = 300, collision = false},
+		[2] = {range = 1200},
 	},
 	["Vayne"] = {
 		[0] = {range = 300},
@@ -2631,6 +2632,120 @@ function Tristana:GetSpellRange(slot)
 end
 
 --[[
+	┌┬┐┬ ┬┬┌┬┐┌─┐┬ ┬
+	 │ ││││ │ │  ├─┤
+	 ┴ └┴┘┴ ┴ └─┘┴ ┴
+ --]]
+
+class "Twitch"
+
+function Twitch:__init()
+	self.Target = nil; self.VenomData = {}
+	self.HeroIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/7/79/TwitchSquare.png"
+	self.WIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/f/f6/Venom_Cask.png"
+	self.EIcon = "https://vignette.wikia.nocookie.net/leagueoflegends/images/5/5f/Contaminate.png"
+	self.WData = SpellData[myHero.charName][1]; self.EData = SpellData[myHero.charName][2]
+	self.TwitchMenu = MenuElement({type = MENU, id = "Twitch", name = "[GoS-U] Twitch", leftIcon = self.HeroIcon})
+	self.TwitchMenu:MenuElement({id = "Combo", name = "Combo", type = MENU})
+	self.TwitchMenu.Combo:MenuElement({id = "UseW", name = "Use W [Venom Cask]", value = true, leftIcon = self.WIcon})
+	self.TwitchMenu:MenuElement({id = "Harass", name = "Harass", type = MENU})
+	self.TwitchMenu.Harass:MenuElement({id = "UseW", name = "Use W [Venom Cask]", value = true, leftIcon = self.WIcon})
+	self.TwitchMenu.Harass:MenuElement({id = "MP", name = "Mana-Manager", value = 40, min = 0, max = 100, step = 5})
+	self.TwitchMenu:MenuElement({id = "KillSteal", name = "KillSteal", type = MENU})
+	self.TwitchMenu.KillSteal:MenuElement({id = "UseE", name = "Use E [Contaminate]", value = true, leftIcon = self.EIcon})
+	self.TwitchMenu:MenuElement({id = "HitChance", name = "HitChance", type = MENU})
+	self.TwitchMenu.HitChance:MenuElement({id = "HCW", name = "HitChance: W", value = 40, min = 0, max = 100, step = 1})
+	self.TwitchMenu:MenuElement({id = "Drawings", name = "Drawings", type = MENU})
+	self.TwitchMenu.Drawings:MenuElement({id = "DrawW", name = "Draw W Range", value = true})
+	self.TwitchMenu.Drawings:MenuElement({id = "DrawE", name = "Draw E Range", value = true})
+	self.TwitchMenu.Drawings:MenuElement({id = "DrawR", name = "Draw R Range", value = true})
+	self.TwitchMenu.Drawings:MenuElement({id = "WRng", name = "W Range Color", color = DrawColor(192, 218, 112, 214)})
+	self.TwitchMenu.Drawings:MenuElement({id = "ERng", name = "E Range Color", color = DrawColor(192, 255, 140, 0)})
+	self.TwitchMenu.Drawings:MenuElement({id = "RRng", name = "R Range Color", color = DrawColor(192, 220, 20, 60)})
+	self.TwitchMenu:MenuElement({id = "blank", name = "GoS-U Reborn v"..LuaVer.."", type = SPACE})
+	self.TwitchMenu:MenuElement({id = "blank", name = "Author: Ark223", type = SPACE})
+	self.TwitchMenu:MenuElement({id = "blank", name = "Credits: gamsteron", type = SPACE})
+	self.Slot = {[_Q] = "Q", [_W] = "W", [_E] = "E", [_R] = "R"}
+	OnDraws.Champion = function() self:Draw() end
+	OnTicks.Champion = function() self:Tick() end
+	_G.SDK.Orbwalker:OnPreAttack(function(...) self:OnPreAttack(...) end)
+end
+
+function Twitch:Tick()
+	if ((_G.ExtLibEvade and _G.ExtLibEvade.Evading) or _G.JustEvade or Game.IsChatOpen() or myHero.dead) then return end
+	self:Auto2()
+	self.Range = myHero.range + myHero.boundingRadius * 2
+	self.Target = Module.TargetSelector:GetTarget(self.EData.range, nil)
+	if self.Target == nil then return end
+	if GoSuManager:GetOrbwalkerMode() == "Combo" then Module.Utility:Tick(); self:Combo(self.Target)
+	elseif GoSuManager:GetOrbwalkerMode() == "Harass" then self:Harass(self.Target) end
+end
+
+function Twitch:Draw()
+	if self.TwitchMenu.Drawings.DrawW:Value() then DrawCircle(myHero.pos, self.WData.range, 1, self.TwitchMenu.Drawings.WRng:Value()) end
+	if self.TwitchMenu.Drawings.DrawE:Value() then DrawCircle(myHero.pos, self.EData.range, 1, self.TwitchMenu.Drawings.ERng:Value()) end
+	if self.TwitchMenu.Drawings.DrawR:Value() then DrawCircle(myHero.pos, self:GetUltRange(), 1, self.TwitchMenu.Drawings.RRng:Value()) end
+end
+
+function Twitch:OnPreAttack(args)
+	if (GoSuManager:GetOrbwalkerMode() == "Combo" or GoSuManager:GetOrbwalkerMode() == "Harass") then
+		args.Target = Module.TargetSelector:GetTarget(self.Range, nil)
+	end
+end
+
+function Twitch:Auto2()
+	for i, enemy in pairs(GoSuManager:GetEnemyHeroes()) do
+		if self.TwitchMenu.KillSteal.UseE:Value() and GoSuManager:ValidTarget(enemy, self.EData.range) then
+			local NID = enemy.networkID
+			if self.VenomData[NID] == nil then self.VenomData[NID] = {timer = 0, stacks = 0} end
+			local stacks = self:GetEStacks(enemy, NID)
+			if GoSuManager:IsReady(_E) and stacks > 0 then
+				local EDmg = GoSuManager:CalcPhysicalDamage(myHero, enemy, ((({20, 30, 40, 50, 60})[GoSuManager:GetCastLevel(myHero, _E)]) + ((stacks * (({15, 20, 25, 30, 35})[GoSuManager:GetCastLevel(myHero, _E)]) + 0.35 * myHero.bonusDamage + 0.2 * myHero.ap)))) * 9.5 / 10
+				if EDmg > enemy.health then ControlCastSpell(HK_E) end
+			end
+		end
+	end
+end
+
+function Twitch:Combo(target)
+	if target == nil or myHero.attackData.state == 2 then return end
+	if self.TwitchMenu.Combo.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target, self.WData.range) then
+		self:UseW(target)
+	end
+end
+
+function Twitch:Harass(target)
+	if target == nil or myHero.attackData.state == 2 or GoSuManager:GetPercentMana(myHero) <= self.TwitchMenu.Harass.MP:Value() then return end
+	if self.TwitchMenu.Combo.UseW:Value() and GoSuManager:IsReady(_W) and GoSuManager:ValidTarget(target, self.WData.range) then
+		self:UseW(target)
+	end
+end
+
+function Twitch:GetEStacks(unit, id)
+	for i = 0, unit.buffCount do
+		local buff = unit:GetBuff(i)
+		if buff and buff.name == "TwitchDeadlyVenom" and buff.count > 0 and GameTimer() < buff.expireTime then
+			if buff.expireTime > self.VenomData[id].timer and self.VenomData[id].stacks < 6 then
+				self.VenomData[id].stacks = self.VenomData[id].stacks + 1
+			end
+			self.VenomData[id].timer = buff.expireTime
+			return self.VenomData[id].stacks
+		end
+	end
+	self.VenomData[id].stacks = 0
+	return 0
+end
+
+function Twitch:GetUltRange()
+	return self.Range and self.Range + 300 or 680
+end
+
+function Twitch:UseW(target)
+	local CastPos, PredPos, HitChance, TimeToHit = PremiumPrediction:GetPrediction(myHero, target, self.WData.speed, self.WData.range, self.WData.delay, self.WData.radius, nil, self.WData.collision)
+	if CastPos and HitChance >= (self.TwitchMenu.HitChance.HCW:Value() / 100) then ControlCastSpell(HK_W, CastPos) end
+end
+
+--[[
 	┬  ┬┌─┐┬ ┬┌┐┌┌─┐
 	└┐┌┘├─┤└┬┘│││├┤ 
 	 └┘ ┴ ┴ ┴ ┘└┘└─┘
@@ -2738,7 +2853,7 @@ function Vayne:OnPostAttackTick(args)
 end
 
 function Vayne:Auto(target)
-	if target == nil and myHero.attackData.state == 2 then return end
+	if target == nil or myHero.attackData.state == 2 then return end
 	if self.VayneMenu.Auto.UseE:Value() then
 		if GoSuManager:GetPercentMana(myHero) > self.VayneMenu.Auto.MP:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target, self.EData.range) then
 			if self:IsOnLineToStun(target) and not GoSuManager:IsUnderTurret(myHero.pos) then ControlCastSpell(HK_E, target.pos) end
@@ -2786,7 +2901,7 @@ function Vayne:Auto2()
 end
 
 function Vayne:Combo(target)
-	if target == nil and myHero.attackData.state == 2 then return end
+	if target == nil or myHero.attackData.state == 2 then return end
 	if self.VayneMenu.Combo.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target, self.EData.range) then
 		if self:IsOnLineToStun(target) then ControlCastSpell(HK_E, target.pos) end
 	end
@@ -2802,7 +2917,7 @@ function Vayne:Combo(target)
 end
 
 function Vayne:Harass(target)
-	if target == nil and myHero.attackData.state == 2 then return end
+	if target == nil or myHero.attackData.state == 2 then return end
 	if self.VayneMenu.Harass.UseE:Value() and GoSuManager:IsReady(_E) and GoSuManager:ValidTarget(target, self.EData.range) then
 		if self:IsOnLineToStun(target) then ControlCastSpell(HK_E, target.pos) end
 	end
